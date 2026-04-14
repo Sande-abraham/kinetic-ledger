@@ -1,0 +1,214 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (optional, email format)
+    //   - phoneNumber: string (optional)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - role: string (required, ['admin', 'client'])
+    //   - walletBalance: number (required)
+    //   - walletPin: string (required)
+    //   - createdAt: timestamp (optional)
+    //
+    // Collection: drivers
+    // Document ID: {driverId}
+    // Fields:
+    //   - name: string (required)
+    //   - contact: string (required)
+    //   - assignedBusId: string (optional)
+    //
+    // Collection: conductors
+    // Document ID: {conductorId}
+    // Fields:
+    //   - name: string (required)
+    //   - contact: string (required)
+    //   - assignedBusId: string (optional)
+    //
+    // Collection: buses
+    // Document ID: {busId}
+    // Fields:
+    //   - operator: string (required)
+    //   - route: string (required)
+    //   - departureTime: timestamp (required)
+    //   - price: number (required, positive)
+    //   - totalSeats: number (required, positive)
+    //   - seatNumbers: list of strings (required)
+    //   - bookedSeats: list of strings (required)
+    //   - driverId: string (optional)
+    //   - conductorId: string (optional)
+    //
+    // Collection: bookings
+    // Document ID: {bookingId}
+    // Fields:
+    //   - userId: string (required)
+    //   - customerName: string (required)
+    //   - customerPhone: string (required)
+    //   - busId: string (required)
+    //   - busOperator: string (required)
+    //   - seatNumbers: list of strings (required)
+    //   - totalPrice: number (required)
+    //   - status: string (required, ['pending', 'confirmed', 'cancelled'])
+    //   - paymentStatus: string (required, ['PAID', 'NOT PAID'])
+    //   - paymentMethod: string (optional)
+    //   - transactionId: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: transactions
+    // Document ID: {transactionId}
+    // Fields:
+    //   - userId: string (required)
+    //   - amount: number (required)
+    //   - type: string (required, ['topup', 'payment', 'refund', 'airtime', 'data'])
+    //   - description: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "gamamediaug@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isPositive(val) {
+      return val is number && val > 0;
+    }
+
+    function isValidList(val, maxLen) {
+      return val is list && val.size() <= maxLen;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'role', 'walletBalance', 'walletPin']) &&
+             data.uid == request.auth.uid &&
+             (!('email' in data) || isValidEmail(data.email)) &&
+             (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() < 20)) &&
+             data.role in ['admin', 'client'] &&
+             data.walletBalance is number &&
+             data.walletPin is string && data.walletPin.size() == 4 &&
+             data.uid is string && data.uid.size() < 128;
+    }
+
+    function isValidBus(data) {
+      return data.keys().hasAll(['operator', 'route', 'departureTime', 'price', 'totalSeats', 'seatNumbers', 'bookedSeats']) &&
+             data.operator is string && data.operator.size() < 100 &&
+             data.route is string && data.route.size() < 100 &&
+             data.departureTime is timestamp &&
+             isPositive(data.price) &&
+             isPositive(data.totalSeats) &&
+             isValidList(data.seatNumbers, 100) &&
+             isValidList(data.bookedSeats, 100);
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['userId', 'customerName', 'customerPhone', 'busId', 'busOperator', 'seatNumbers', 'totalPrice', 'status', 'paymentStatus', 'createdAt', 'departureTime', 'paymentMethod', 'transactionId']) &&
+             data.userId == request.auth.uid &&
+             data.customerName is string && data.customerName.size() > 0 && data.customerName.size() < 100 &&
+             data.customerPhone is string && data.customerPhone.size() > 0 && data.customerPhone.size() < 20 &&
+             data.busId is string &&
+             data.busOperator is string &&
+             isValidList(data.seatNumbers, 30) &&
+             isPositive(data.totalPrice) &&
+             data.status in ['pending', 'confirmed', 'cancelled'] &&
+             data.paymentStatus in ['PAID', 'NOT PAID'] &&
+             data.createdAt is timestamp &&
+             data.departureTime is timestamp &&
+             data.paymentMethod in ['MTN', 'Airtel', 'Card', 'Wallet'] &&
+             data.transactionId is string;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['userId', 'amount', 'type', 'description', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.amount is number &&
+             data.type in ['topup', 'payment', 'refund', 'airtime', 'data'] &&
+             data.description is string && data.description.size() < 200 &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'client' || isAdmin());
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /drivers/{driverId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /conductors/{conductorId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /buses/{busId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidBus(request.resource.data);
+      allow update: if (isAdmin() && isValidBus(request.resource.data)) || 
+                    (isAuthenticated() && 
+                     isValidBus(request.resource.data) && 
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedSeats']) &&
+                     request.resource.data.bookedSeats.hasAll(resource.data.bookedSeats));
+      allow delete: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && isValidBooking(request.resource.data);
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin()) && isValidBooking(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /complaints/{complaintId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    match /staff_notifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.staffId || isAdmin());
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;700;800&display=swap');
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  --color-secondary-fixed-dim: #71dba6;
+  --color-surface-container: #eceef0;
+  --color-background: #f7f9fb;
+  --color-primary: #0040a1;
+  --color-on-background: #191c1e;
+  --color-on-secondary: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-secondary-fixed: #002113;
+  --color-tertiary-fixed: #ffddb8;
+  --color-on-tertiary: #ffffff;
+  --color-secondary-container: #8af5be;
+  --color-primary-container: #0056d2;
+  --color-secondary-fixed: #8df7c1;
+  --color-surface-variant: #e0e3e5;
+  --color-on-surface: #191c1e;
+  --color-on-tertiary-fixed: #2a1700;
+  --color-tertiary-container: #865400;
+  --color-on-primary-fixed-variant: #0040a1;
+  --color-outline: #737785;
+  --color-surface-tint: #0056d2;
+  --color-on-secondary-container: #00714b;
+  --color-on-error-container: #93000a;
+  --color-on-tertiary-container: #ffd29e;
+  --color-surface-dim: #d8dadc;
+  --color-surface-container-highest: #e0e3e5;
+  --color-on-primary-fixed: #001847;
+  --color-inverse-surface: #2d3133;
+  --color-primary-fixed: #dae2ff;
+  --color-tertiary-fixed-dim: #ffb95f;
+  --color-inverse-on-surface: #eff1f3;
+  --color-on-tertiary-fixed-variant: #653e00;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-surface-variant: #424654;
+  --color-on-secondary-fixed-variant: #005235;
+  --color-on-error: #ffffff;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-bright: #f7f9fb;
+  --color-primary-fixed-dim: #b2c5ff;
+  --color-secondary: #006c47;
+  --color-on-primary: #ffffff;
+  --color-tertiary: #663f00;
+  --color-error: #ba1a1a;
+  --color-inverse-primary: #b2c5ff;
+  --color-outline-variant: #c3c6d6;
+  --color-surface-container-high: #e6e8ea;
+  --color-on-primary-container: #ccd8ff;
+  --color-surface: #f7f9fb;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-on-surface font-body;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline;
+  }
+}
