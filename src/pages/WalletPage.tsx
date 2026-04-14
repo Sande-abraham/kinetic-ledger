@@ -215,7 +215,11 @@ export const WalletPage = () => {
         notify(response.data.message, 'info');
       }
     } catch (err: any) {
-      notify(err.response?.data?.message || 'Transaction failed', 'error');
+      const errorMessage = err.response?.data?.message || 
+                          (typeof err.response?.data === 'string' ? err.response.data : null) || 
+                          err.message || 
+                          'Transaction failed';
+      notify(errorMessage, 'error');
     } finally {
       setProcessing(false);
     }
@@ -265,39 +269,39 @@ export const WalletPage = () => {
   }
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
+    <div className="pt-24 md:pt-32 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-12"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12"
       >
         {/* Wallet Balance Card */}
         <div className="lg:col-span-1">
-          <div className="bg-on-surface text-surface p-10 rounded-[48px] shadow-2xl relative overflow-hidden group">
+          <div className="bg-on-surface text-surface p-6 md:p-10 rounded-[32px] md:rounded-[48px] shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700" />
             <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-12">
-                <div className="bg-surface/20 p-3 rounded-2xl backdrop-blur-md">
-                  <Wallet className="w-6 h-6" />
+              <div className="flex items-center gap-3 md:gap-4 mb-8 md:mb-12">
+                <div className="bg-surface/20 p-2 md:p-3 rounded-xl md:rounded-2xl backdrop-blur-md">
+                  <Wallet className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
-                <span className="text-sm font-bold uppercase tracking-[0.2em] opacity-60">Kinetic Wallet</span>
+                <span className="text-xs md:text-sm font-bold uppercase tracking-[0.2em] opacity-60">Kinetic Wallet</span>
               </div>
-              <p className="text-sm font-bold opacity-60 mb-2">Available Balance</p>
-              <h2 className="text-5xl font-black tracking-tighter mb-12">
-                {(profile?.walletBalance || 0).toLocaleString()} <span className="text-xl opacity-60">UGX</span>
+              <p className="text-xs md:text-sm font-bold opacity-60 mb-1 md:mb-2">Available Balance</p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter mb-8 md:mb-12">
+                {(profile?.walletBalance || 0).toLocaleString()} <span className="text-lg md:text-xl opacity-60">UGX</span>
               </h2>
-              <div className="flex gap-4 mb-4">
+              <div className="flex gap-3 md:gap-4 mb-4">
                 <button 
                   onClick={() => { setAction('topup'); setShowModal(true); }}
-                  className="flex-1 bg-primary text-on-primary py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary-container transition-all"
+                  className="flex-1 bg-primary text-on-primary py-3 md:py-4 rounded-xl md:rounded-2xl font-bold text-sm md:text-base flex items-center justify-center gap-2 hover:bg-primary-container transition-all"
                 >
-                  <Plus className="w-5 h-5" /> Top Up
+                  <Plus className="w-4 h-4 md:w-5 md:h-5" /> Top Up
                 </button>
                 <button 
                   onClick={() => { setAction('send'); setShowModal(true); }}
-                  className="flex-1 bg-surface/10 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-surface/20 transition-all backdrop-blur-md"
+                  className="flex-1 bg-surface/10 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold text-sm md:text-base flex items-center justify-center gap-2 hover:bg-surface/20 transition-all backdrop-blur-md"
                 >
-                  <Send className="w-5 h-5" /> Send
+                  <Send className="w-4 h-4 md:w-5 md:h-5" /> Send
                 </button>
               </div>
               <button 
@@ -313,15 +317,23 @@ export const WalletPage = () => {
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-primary" /> Security Tip
             </h3>
-            <p className="text-sm text-on-surface-variant leading-relaxed">
+            <p className="text-sm text-on-surface-variant leading-relaxed mb-6">
               Never share your 4-digit Wallet PIN with anyone. Kinetic Ledger staff will never ask for your PIN.
             </p>
+            <a 
+              href="https://wa.me/256703261600" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-4 bg-[#25D366]/10 text-[#25D366] rounded-2xl font-bold hover:bg-[#25D366]/20 transition-all"
+            >
+              <MessageSquare className="w-5 h-5" /> Chat with Support
+            </a>
           </div>
         </div>
 
         {/* Action Grid & History */}
         <div className="lg:col-span-2 space-y-12">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
             {[
               { id: 'airtime', label: 'Airtime', icon: Smartphone, color: 'bg-secondary-container text-secondary' },
               { id: 'data', label: 'Data Bundles', icon: Wifi, color: 'bg-primary-fixed text-primary' },
@@ -330,55 +342,55 @@ export const WalletPage = () => {
               <button 
                 key={item.id}
                 onClick={() => { setAction(item.id as any); setShowModal(true); }}
-                className="bg-surface-container-low p-8 rounded-[40px] border border-outline-variant/10 hover:border-primary/40 transition-all flex flex-col items-center justify-center gap-4 group"
+                className="bg-surface-container-low p-6 md:p-8 rounded-3xl md:rounded-[40px] border border-outline-variant/10 hover:border-primary/40 transition-all flex flex-col items-center justify-center gap-3 md:gap-4 group"
               >
-                <div className={cn("p-5 rounded-3xl transition-transform group-hover:scale-110", item.color)}>
-                  <item.icon className="w-8 h-8" />
+                <div className={cn("p-4 md:p-5 rounded-2xl md:rounded-3xl transition-transform group-hover:scale-110", item.color)}>
+                  <item.icon className="w-6 h-6 md:w-8 md:h-8" />
                 </div>
-                <span className="font-bold text-sm">{item.label}</span>
+                <span className="font-bold text-xs md:text-sm">{item.label}</span>
               </button>
             ))}
           </div>
 
           {/* History */}
           <div>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-black tracking-tight flex items-center gap-4">
-                <Clock className="w-8 h-8 text-primary" /> Transaction History
+            <div className="flex items-center justify-between mb-6 md:mb-8">
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-3 md:gap-4">
+                <Clock className="w-6 h-6 md:w-8 md:h-8 text-primary" /> History
               </h2>
             </div>
             {transactions.length === 0 ? (
-              <div className="bg-surface-container-low p-12 rounded-[40px] text-center border border-outline-variant/10">
-                <RefreshCcw className="w-12 h-12 text-outline mx-auto mb-4 opacity-20" />
-                <p className="text-on-surface-variant font-bold">No transactions yet.</p>
+              <div className="bg-surface-container-low p-8 md:p-12 rounded-3xl md:rounded-[40px] text-center border border-outline-variant/10">
+                <RefreshCcw className="w-10 h-10 md:w-12 md:h-12 text-outline mx-auto mb-4 opacity-20" />
+                <p className="text-sm md:text-on-surface-variant font-bold">No transactions yet.</p>
               </div>
             ) : (
-              <div className="bg-surface-container-low rounded-[40px] border border-outline-variant/10 overflow-hidden">
+              <div className="bg-surface-container-low rounded-3xl md:rounded-[40px] border border-outline-variant/10 overflow-hidden">
                 <div className="divide-y divide-outline-variant/10">
                   {transactions.map((tx) => (
-                    <div key={tx.id} className="p-6 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
-                      <div className="flex items-center gap-4">
+                    <div key={tx.id} className="p-4 md:p-6 flex items-center justify-between hover:bg-surface-container-lowest transition-colors">
+                      <div className="flex items-center gap-3 md:gap-4">
                         <div className={cn(
-                          "p-3 rounded-xl",
+                          "p-2 md:p-3 rounded-lg md:rounded-xl",
                           tx.amount > 0 ? "bg-primary-fixed text-primary" : "bg-error-container text-error"
                         )}>
-                          {tx.amount > 0 ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownLeft className="w-5 h-5" />}
+                          {tx.amount > 0 ? <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5" /> : <ArrowDownLeft className="w-4 h-4 md:w-5 md:h-5" />}
                         </div>
                         <div>
-                          <p className="font-bold text-on-surface">{tx.description}</p>
-                          <p className="text-[10px] font-bold text-outline uppercase tracking-widest mt-0.5">
-                            {tx.createdAt ? format(tx.createdAt.toDate(), 'MMM dd, yyyy • HH:mm') : 'Just now'}
+                          <p className="font-bold text-xs md:text-sm text-on-surface">{tx.description}</p>
+                          <p className="text-[9px] md:text-[10px] font-bold text-outline uppercase tracking-widest mt-0.5">
+                            {tx.createdAt ? format(tx.createdAt.toDate(), 'MMM dd • HH:mm') : 'Just now'}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <p className={cn(
-                          "text-lg font-black",
+                          "text-sm md:text-lg font-black",
                           tx.amount > 0 ? "text-primary" : "text-error"
                         )}>
-                          {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()} UGX
+                          {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()} <span className="text-[10px]">UGX</span>
                         </p>
-                        <p className="text-[10px] font-bold text-outline uppercase tracking-widest">{tx.type}</p>
+                        <p className="text-[9px] md:text-[10px] font-bold text-outline uppercase tracking-widest">{tx.type}</p>
                       </div>
                     </div>
                   ))}

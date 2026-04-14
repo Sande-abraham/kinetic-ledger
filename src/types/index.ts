@@ -81,6 +81,7 @@ export interface Booking {
   paymentStatus: 'PAID' | 'NOT PAID';
   paymentMethod?: string;
   transactionId?: string;
+  refundAmount?: number;
   createdAt: Timestamp;
   departureTime: Timestamp;
 }

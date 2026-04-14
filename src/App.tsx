@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { NotificationProvider } from './lib/NotificationContext';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import { HomePage } from './pages/HomePage';
 import { SearchPage } from './pages/SearchPage';
 import { BookingPage } from './pages/BookingPage';
@@ -43,13 +43,13 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6">
-      <div className="max-w-7xl mx-auto bg-surface/80 backdrop-blur-2xl border border-outline-variant/20 rounded-3xl shadow-2xl px-8 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="bg-primary p-2.5 rounded-2xl transition-transform group-hover:rotate-12">
-            <BusIcon className="text-on-primary w-6 h-6" />
+    <nav className="fixed top-0 left-0 right-0 z-50 px-3 py-4 md:px-6 md:py-6">
+      <div className="max-w-7xl mx-auto bg-surface/80 backdrop-blur-2xl border border-outline-variant/20 rounded-2xl md:rounded-3xl shadow-2xl px-4 py-3 md:px-8 md:py-4 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 md:gap-3 group">
+          <div className="bg-primary p-2 md:p-2.5 rounded-xl md:rounded-2xl transition-transform group-hover:rotate-12">
+            <BusIcon className="text-on-primary w-5 h-5 md:w-6 md:h-6" />
           </div>
-          <span className="text-2xl font-black tracking-tighter text-on-surface">KINETIC<span className="text-primary">LEDGER</span></span>
+          <span className="text-xl md:text-2xl font-black tracking-tighter text-on-surface">KINETIC<span className="text-primary">LEDGER</span></span>
         </Link>
 
         <div className="hidden md:flex items-center gap-10">
@@ -67,43 +67,43 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           {user ? (
-            <div className="flex items-center gap-4 pl-6 border-l border-outline-variant/20">
+            <div className="flex items-center gap-2 md:gap-4 pl-3 md:pl-6 border-l border-outline-variant/20">
               <div className="hidden md:block text-right">
                 <p className="text-xs font-bold text-on-surface">{user.displayName}</p>
                 <p className="text-[10px] font-black uppercase text-primary tracking-widest">{isAdmin ? 'Fleet Admin' : 'Traveler'}</p>
               </div>
-              <button onClick={logout} className="p-2.5 bg-surface-container-low text-on-surface-variant rounded-xl hover:bg-error-container hover:text-error transition-all">
-                <LogOut className="w-5 h-5" />
+              <button onClick={logout} className="p-2 md:p-2.5 bg-surface-container-low text-on-surface-variant rounded-xl hover:bg-error-container hover:text-error transition-all">
+                <LogOut className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </div>
           ) : (
-            <Link to="/auth" className="bg-on-surface text-surface px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-primary transition-all flex items-center gap-2">
-              <User className="w-4 h-4" /> Login / Register
+            <Link to="/auth" className="hidden sm:flex bg-on-surface text-surface px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm hover:bg-primary transition-all items-center gap-2">
+              <User className="w-4 h-4" /> Login
             </Link>
           )}
-          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2.5 bg-surface-container-low rounded-xl">
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 md:p-2.5 bg-surface-container-low rounded-xl">
+            {isOpen ? <X className="w-5 h-5 md:w-6 md:h-6" /> : <Menu className="w-5 h-5 md:w-6 md:h-6" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden absolute top-28 left-6 right-6 bg-surface border border-outline-variant/20 rounded-[40px] shadow-2xl p-8 space-y-6 animate-in slide-in-from-top-4 duration-300">
+        <div className="md:hidden absolute top-24 left-3 right-3 bg-surface border border-outline-variant/20 rounded-[32px] shadow-2xl p-6 space-y-4 animate-in slide-in-from-top-4 duration-300">
           {navLinks.filter(link => (!link.protected || user) && (!link.adminOnly || isAdmin)).map((link) => (
             <Link 
               key={link.path} 
               to={link.path} 
               onClick={() => setIsOpen(false)}
-              className="block text-2xl font-black tracking-tight text-on-surface hover:text-primary transition-colors"
+              className="block text-xl font-black tracking-tight text-on-surface hover:text-primary transition-colors"
             >
               {link.name}
             </Link>
           ))}
           {!user && (
-            <Link to="/auth" onClick={() => setIsOpen(false)} className="w-full bg-primary text-on-primary py-4 rounded-2xl font-bold flex items-center justify-center gap-2">
+            <Link to="/auth" onClick={() => setIsOpen(false)} className="w-full bg-primary text-on-primary py-3.5 rounded-xl font-bold flex items-center justify-center gap-2">
               <User className="w-5 h-5" /> Login / Register
             </Link>
           )}
@@ -195,7 +195,7 @@ const App = () => {
     <AuthProvider>
       <NotificationProvider>
         <Router>
-          <ErrorBoundary>
+          <AppErrorBoundary>
             <div className="min-h-screen bg-surface selection:bg-primary/20 selection:text-primary">
               <Navbar />
               <main>
@@ -217,7 +217,7 @@ const App = () => {
               </main>
               <Footer />
             </div>
-          </ErrorBoundary>
+          </AppErrorBoundary>
         </Router>
       </NotificationProvider>
     </AuthProvider>

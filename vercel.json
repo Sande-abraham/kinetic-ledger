@@ -17,6 +17,14 @@
       "dest": "server.ts"
     },
     {
+      "src": "/src/(.*)",
+      "status": 404
+    },
+    {
+      "src": "/(.*)\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|tsx|ts)$",
+      "check": true
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1",
       "check": true

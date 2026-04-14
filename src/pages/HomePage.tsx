@@ -8,7 +8,8 @@ import {
   ShieldCheck, 
   Zap, 
   Clock,
-  Star
+  Star,
+  MessageSquare
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -65,7 +66,7 @@ export const HomePage = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative pt-48 pb-32 px-6 overflow-hidden isolate">
+      <section className="relative pt-24 md:pt-48 pb-16 md:pb-32 px-4 md:px-6 overflow-hidden isolate">
         {/* Artistic Moving Bus Background */}
         <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden select-none">
           <motion.div
@@ -105,33 +106,33 @@ export const HomePage = () => {
               <div className="w-full h-full bg-gradient-to-tr from-primary via-secondary to-tertiary rounded-full animate-pulse" />
             </div>
 
-            <div className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-xl px-6 py-2.5 rounded-full border border-primary/10 shadow-xl shadow-primary/5">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Next Gen Travel Experience</span>
+            <div className="inline-flex items-center gap-2 md:gap-3 bg-white/80 backdrop-blur-xl px-4 md:px-6 py-2 md:py-2.5 rounded-full border border-primary/10 shadow-xl shadow-primary/5">
+              <span className="flex h-2 w-2 md:h-2.5 md:w-2.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-primary">Next Gen Travel Experience</span>
             </div>
             
-            <h1 className="text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] text-on-surface relative">
+            <h1 className="text-4xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] text-on-surface relative">
               The <span className="text-primary relative">
                 Future
                 <motion.span 
                   initial={{ width: 0 }}
                   whileInView={{ width: "100%" }}
                   transition={{ delay: 0.5, duration: 1 }}
-                  className="absolute bottom-2 left-0 h-4 bg-primary/20 -z-10"
+                  className="absolute bottom-1 md:bottom-2 left-0 h-1.5 md:h-4 bg-primary/20 -z-10"
                 />
               </span> of <span className="italic font-serif text-secondary">Travel</span> is Here.
             </h1>
             
-            <p className="text-xl text-on-surface-variant max-w-lg leading-relaxed font-medium">
+            <p className="text-lg md:text-xl text-on-surface-variant max-w-lg leading-relaxed font-medium">
               Experience executive comfort on the Kampala-Lira route. Real-time tracking, digital payments, and premium hospitality.
             </p>
 
-            <div className="flex flex-wrap gap-6 pt-4">
+            <div className="flex flex-col sm:flex-row gap-6 pt-4">
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleBookingClick} 
-                className="bg-primary text-on-primary px-12 py-6 rounded-[32px] font-black text-xl hover:bg-primary-container transition-all shadow-2xl shadow-primary/30 flex items-center gap-4 group"
+                className="bg-primary text-on-primary px-6 md:px-12 py-3.5 md:py-6 rounded-xl md:rounded-[32px] font-black text-base md:text-xl hover:bg-primary-container transition-all shadow-2xl shadow-primary/30 flex items-center justify-center gap-4 group"
               >
                 Book Your Seat <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
               </motion.button>
@@ -389,15 +390,20 @@ export const HomePage = () => {
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 2 }}
-        className="fixed bottom-10 right-10 z-50"
+        className="fixed bottom-6 md:bottom-10 right-6 md:right-10 z-50"
       >
-        <button className="bg-primary text-on-primary p-5 rounded-full shadow-2xl hover:scale-110 transition-transform group relative">
-          <div className="absolute -top-2 -right-2 w-5 h-5 bg-secondary rounded-full border-4 border-surface animate-bounce" />
-          <Clock className="w-8 h-8" />
+        <a 
+          href="https://wa.me/256703261600" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="bg-[#25D366] text-white p-4 md:p-5 rounded-full shadow-2xl hover:scale-110 transition-transform group relative flex items-center justify-center"
+        >
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full border-2 border-surface animate-bounce" />
+          <MessageSquare className="w-6 h-6 md:w-8 md:h-8" />
           <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-on-surface text-surface px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             24/7 Support Online
           </div>
-        </button>
+        </a>
       </motion.div>
     </div>
   );

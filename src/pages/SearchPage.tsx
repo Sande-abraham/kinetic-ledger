@@ -35,21 +35,21 @@ export const SearchPage = () => {
   }, [from, to]);
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-8">
+    <div className="pt-24 md:pt-32 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-6 md:gap-8">
         <div>
-          <div className="flex items-center gap-3 text-primary font-bold mb-2">
-            <MapPin className="w-5 h-5" />
-            <span>{from} → {to}</span>
+          <div className="flex items-center gap-2 md:gap-3 text-primary font-bold mb-2">
+            <MapPin className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="text-sm md:text-base">{from} → {to}</span>
           </div>
-          <h1 className="text-5xl font-black tracking-tight">Available Schedules</h1>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight">Available Schedules</h1>
         </div>
-        <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-2xl">
-          <div className="flex items-center gap-2 px-4 py-2 border-r border-outline-variant/20">
+        <div className="flex items-center gap-3 md:gap-4 bg-surface-container-low p-2 rounded-2xl w-full md:w-auto overflow-x-auto">
+          <div className="flex items-center gap-2 px-3 md:px-4 py-2 border-r border-outline-variant/20 shrink-0">
             <Calendar className="w-4 h-4 text-outline" />
-            <span className="text-sm font-bold">{format(new Date(), 'MMM dd, yyyy')}</span>
+            <span className="text-xs md:text-sm font-bold">{format(new Date(), 'MMM dd, yyyy')}</span>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm font-bold hover:bg-surface-container rounded-xl transition-all">
+          <button className="flex items-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-bold hover:bg-surface-container rounded-xl transition-all shrink-0">
             <Filter className="w-4 h-4" /> Filter
           </button>
         </div>
@@ -67,10 +67,10 @@ export const SearchPage = () => {
           <Link to="/" className="inline-block mt-8 text-primary font-bold hover:underline">Back to Search</Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-6 md:gap-8">
           {buses.map((bus) => (
-            <div key={bus.id} className="group bg-surface-container-lowest p-8 md:p-10 rounded-[40px] border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row items-center gap-10">
-              <div className="relative w-full md:w-64 h-48 rounded-[32px] overflow-hidden transition-transform group-hover:scale-105 shrink-0">
+            <div key={bus.id} className="group bg-surface-container-lowest p-6 md:p-10 rounded-3xl md:rounded-[40px] border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              <div className="relative w-full md:w-64 h-40 md:h-48 rounded-2xl md:rounded-[32px] overflow-hidden transition-transform group-hover:scale-105 shrink-0">
                 <img 
                   src={bus.imageUrl || `https://picsum.photos/seed/${bus.operator.replace(/\s+/g, '-').toLowerCase()}/800/600`} 
                   className="w-full h-full object-cover"
@@ -84,32 +84,32 @@ export const SearchPage = () => {
                 </div>
               </div>
               
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 w-full">
                 <div>
-                  <p className="text-xs font-bold text-outline uppercase tracking-widest mb-2">Operator</p>
-                  <h3 className="text-2xl font-bold">{bus.operator}</h3>
-                  <p className="text-sm text-on-surface-variant mt-1">Executive Class • AC</p>
+                  <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-1 md:mb-2">Operator</p>
+                  <h3 className="text-xl md:text-2xl font-bold">{bus.operator}</h3>
+                  <p className="text-xs md:text-sm text-on-surface-variant mt-1">Executive Class • AC</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-outline uppercase tracking-widest mb-2">Departure</p>
+                  <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-1 md:mb-2">Departure</p>
                   <div className="flex items-center gap-2">
-                    <Clock className="text-primary w-5 h-5" />
-                    <span className="text-xl font-black">{format(bus.departureTime.toDate(), 'hh:mm a')}</span>
+                    <Clock className="text-primary w-4 h-4 md:w-5 md:h-5" />
+                    <span className="text-lg md:text-xl font-black">{format(bus.departureTime.toDate(), 'hh:mm a')}</span>
                   </div>
-                  <p className="text-xs text-on-surface-variant mt-1">{format(bus.departureTime.toDate(), 'EEEE, MMM dd')}</p>
+                  <p className="text-[10px] md:text-xs text-on-surface-variant mt-1">{format(bus.departureTime.toDate(), 'EEEE, MMM dd')}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-outline uppercase tracking-widest mb-2">Availability</p>
+                  <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-1 md:mb-2">Availability</p>
                   <div className="flex items-center gap-2">
-                    <Users className="text-primary w-5 h-5" />
-                    <span className="text-xl font-black">{bus.totalSeats - bus.bookedSeats.length} Seats Left</span>
+                    <Users className="text-primary w-4 h-4 md:w-5 md:h-5" />
+                    <span className="text-lg md:text-xl font-black">{bus.totalSeats - bus.bookedSeats.length} Seats Left</span>
                   </div>
-                  <div className="flex flex-wrap gap-1 mt-3">
+                  <div className="flex flex-wrap gap-1 mt-2 md:mt-3">
                     {bus.seatNumbers.slice(0, 10).map(s => (
                       <div 
                         key={s} 
                         className={cn(
-                          "w-3 h-3 rounded-[2px]",
+                          "w-2.5 h-2.5 md:w-3 md:h-3 rounded-[2px]",
                           bus.bookedSeats.includes(s) ? "bg-error/20" : "bg-secondary-fixed-dim"
                         )} 
                       />
@@ -119,14 +119,14 @@ export const SearchPage = () => {
                 </div>
               </div>
 
-              <div className="text-center md:text-right w-full md:w-auto border-t md:border-t-0 md:border-l border-outline-variant/10 pt-8 md:pt-0 md:pl-10">
-                <p className="text-xs font-bold text-outline uppercase tracking-widest mb-1">Price</p>
-                <p className="text-4xl font-black text-primary mb-6">{bus.price.toLocaleString()}<span className="text-sm ml-1 text-outline">UGX</span></p>
+              <div className="text-center md:text-right w-full md:w-auto border-t md:border-t-0 md:border-l border-outline-variant/10 pt-6 md:pt-0 md:pl-10">
+                <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-1">Price</p>
+                <p className="text-3xl md:text-4xl font-black text-primary mb-4 md:mb-6">{bus.price.toLocaleString()}<span className="text-xs md:text-sm ml-1 text-outline">UGX</span></p>
                 <Link 
                   to={`/booking/${bus.id}`}
-                  className="inline-flex items-center gap-3 bg-on-surface text-surface px-8 py-4 rounded-2xl font-bold hover:bg-primary transition-all shadow-lg"
+                  className="inline-flex items-center justify-center gap-3 bg-on-surface text-surface px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold text-sm md:text-base hover:bg-primary transition-all shadow-lg w-full md:w-auto"
                 >
-                  Select Seats <ArrowRight className="w-5 h-5" />
+                  Select Seats <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
                 </Link>
               </div>
             </div>

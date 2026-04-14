@@ -10,7 +10,8 @@ import {
   Info,
   Calendar,
   Clock,
-  Wallet
+  Wallet,
+  MessageSquare
 } from 'lucide-react';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { 
@@ -212,7 +213,18 @@ export const BookingPage = () => {
         })
       });
 
-      const payData = await payRes.json();
+      const responseText = await payRes.text();
+
+      if (!payRes.ok) {
+        throw new Error(`Server error (${payRes.status}): ${responseText.substring(0, 100) || payRes.statusText}`);
+      }
+
+      let payData;
+      try {
+        payData = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error(`Invalid response from server. Expected JSON but received: ${responseText.substring(0, 100)}`);
+      }
       
       if (payData.status !== 'success') {
         throw new Error(payData.message || 'Payment initiation failed');
@@ -525,6 +537,15 @@ export const BookingPage = () => {
                 <Clock className="w-4 h-4" /> Securely waiting for confirmation...
               </div>
               
+              <a 
+                href="https://wa.me/256703261600" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-4 bg-[#25D366] text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+              >
+                <MessageSquare className="w-5 h-5" /> WhatsApp Support
+              </a>
+
               {/* Simulation Helper */}
               <button 
                 onClick={simulatePaymentSuccess}

@@ -84,19 +84,19 @@ export const ConfirmationPage = () => {
   if (!booking) return <div className="pt-40 text-center font-bold">Loading your ticket...</div>;
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-4xl mx-auto">
+    <div className="pt-24 md:pt-32 pb-24 px-4 md:px-6 max-w-4xl mx-auto">
       <motion.div 
         ref={ticketRef}
         initial={{ opacity: 0, scale: 0.95 }} 
         animate={{ opacity: 1, scale: 1 }} 
-        className="bg-surface-container-lowest rounded-[40px] overflow-hidden shadow-2xl border border-outline-variant/10"
+        className="bg-surface-container-lowest rounded-3xl md:rounded-[40px] overflow-hidden shadow-2xl border border-outline-variant/10"
       >
-        <div className="bg-primary p-12 text-on-primary text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10"><BusIcon className="w-48 h-48 rotate-12" /></div>
+        <div className="bg-primary p-6 md:p-12 text-on-primary text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 md:p-8 opacity-10"><BusIcon className="w-32 h-32 md:w-48 md:h-48 rotate-12" /></div>
           <div className="relative z-10">
-            <div className="bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-md"><CheckCircle2 className="w-12 h-12" /></div>
-            <h1 className="text-4xl font-black mb-3">Booking Confirmed!</h1>
-            <p className="text-primary-fixed/80 text-lg">Your seat is secured. Get ready for an executive journey.</p>
+            <div className="bg-white/20 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 backdrop-blur-md"><CheckCircle2 className="w-10 h-10 md:w-12 md:h-12" /></div>
+            <h1 className="text-2xl md:text-4xl font-black mb-2 md:mb-3">Booking Confirmed!</h1>
+            <p className="text-primary-fixed/80 text-sm md:text-lg">Your seat is secured. Get ready for an executive journey.</p>
           </div>
         </div>
         <div className="p-12">
