@@ -33,57 +33,49 @@ app.get("/api/health", (req, res) => {
 
 // Initiate Payment
 app.post("/api/payments/initiate", async (req, res) => {
-  const { amount, phoneNumber, email, name } = req.body;
+  const { amount, phoneNumber } = req.body;
 
   if (!phoneNumber) {
-    return res.status(400).json({ error: "Phone number is required" });
-  }
-
-  try {
-    // 👇 ADD IT HERE
-    console.log("FLW KEY:", process.env.FLW_SECRET_KEY);
-
-    const response = await axios.post(
-      "https://api.flutterwave.com/v3/charges?type=mobile_money_uganda",
-      {
-        tx_ref: "tx-" + Date.now(),
-        amount,
-        currency: "UGX",
-        email,
-        fullname: name,
-        phone_number: phoneNumber,
-        network:
-          phoneNumber.startsWith("077") || phoneNumber.startsWith("078")
-            ? "MTN"
-            : "AIRTEL",
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    res.json(response.data);
-  } catch (error: any) {
-    console.error("Flutterwave error:", error.response?.data || error.message);
-    res.status(500).json({
-      error: "Payment failed",
-      details: error.response?.data || error.message,
+    return res.status(400).json({
+      status: "error",
+      message: "Phone number is required",
     });
   }
+
+  const txRef = `DEMO-${Date.now()}`;
+
+  console.log(`Demo STK started: ${txRef}`);
+
+  res.json({
+    status: "pending",
+    txRef,
+    message: "STK Push sent. Please enter your PIN on your phone.",
+  });
 });
 
 // Status check
-app.get("/api/wallet/status/:txRef", (req, res) => {
-  const success = Math.random() > 0.7;
+const transactionStore: Record<string, number> = {};
 
-  if (success) {
-    res.json({ status: "success", message: "Payment confirmed!" });
-  } else {
-    res.json({ status: "pending", message: "Waiting for PIN..." });
+app.get("/api/wallet/status/:txRef", (req, res) => {
+  const { txRef } = req.params;
+
+  if (!transactionStore[txRef]) {
+    transactionStore[txRef] = Date.now();
   }
+
+  const elapsed = Date.now() - transactionStore[txRef];
+
+  if (elapsed < 5000) {
+    return res.json({
+      status: "pending",
+      message: "Waiting for user to enter PIN...",
+    });
+  }
+
+  return res.json({
+    status: "success",
+    message: "Payment confirmed successfully!",
+  });
 });
 
 // Webhook
