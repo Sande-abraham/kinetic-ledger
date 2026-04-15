@@ -69,8 +69,8 @@ export const SearchPage = () => {
       ) : (
         <div className="grid grid-cols-1 gap-6 md:gap-8">
           {buses.map((bus) => (
-            <div key={bus.id} className="group bg-surface-container-lowest p-6 md:p-10 rounded-3xl md:rounded-[40px] border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-              <div className="relative w-full md:w-64 h-40 md:h-48 rounded-2xl md:rounded-[32px] overflow-hidden transition-transform group-hover:scale-105 shrink-0">
+            <div key={bus.id} className="group bg-surface-container-lowest p-5 md:p-10 rounded-2xl md:rounded-[40px] border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              <div className="relative w-full md:w-64 h-32 md:h-48 rounded-xl md:rounded-[32px] overflow-hidden transition-transform group-hover:scale-105 shrink-0">
                 <img 
                   src={bus.imageUrl || `https://picsum.photos/seed/${bus.operator.replace(/\s+/g, '-').toLowerCase()}/800/600`} 
                   className="w-full h-full object-cover"

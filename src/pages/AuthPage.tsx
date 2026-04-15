@@ -62,14 +62,14 @@ export const AuthPage = () => {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-surface-container-lowest p-10 rounded-[48px] shadow-2xl border border-outline-variant/10 text-center"
+        className="max-w-md w-full bg-surface-container-lowest p-6 md:p-10 rounded-[32px] md:rounded-[48px] shadow-2xl border border-outline-variant/10 text-center"
       >
-        <div className="bg-primary-fixed w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-primary/10">
-          <Bus className="text-primary w-10 h-10" />
+        <div className="bg-primary-fixed w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-6 md:mb-8 shadow-lg shadow-primary/10">
+          <Bus className="text-primary w-8 h-8 md:w-10 md:h-10" />
         </div>
         
-        <h1 className="text-4xl font-black tracking-tight mb-4">Join the Fleet</h1>
-        <p className="text-on-surface-variant mb-10 leading-relaxed">
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3 md:mb-4">Join the Fleet</h1>
+        <p className="text-on-surface-variant text-sm md:text-base mb-8 md:mb-10 leading-relaxed">
           Experience executive travel with real-time booking and secure digital tickets.
         </p>
 
@@ -97,36 +97,36 @@ export const AuthPage = () => {
         {authMode === 'google' ? (
           <button 
             onClick={handleGoogleLogin}
-            className="w-full bg-on-surface text-surface py-5 rounded-2xl font-bold text-lg hover:bg-primary transition-all flex items-center justify-center gap-3 shadow-xl shadow-on-surface/10"
+            className="w-full bg-on-surface text-surface py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-base md:text-lg hover:bg-primary transition-all flex items-center justify-center gap-2 md:gap-3 shadow-xl shadow-on-surface/10"
           >
             Continue with Google <ArrowRight className="w-5 h-5" />
           </button>
         ) : (
           <form onSubmit={handlePhoneLogin} className="space-y-4 text-left">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-outline uppercase tracking-widest ml-2">Full Name</label>
+              <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest ml-2">Full Name</label>
               <input 
                 type="text" required
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 font-bold"
+                className="w-full bg-surface-container-low p-3 md:p-4 rounded-xl md:rounded-2xl border-none focus:ring-2 ring-primary/20 font-bold text-sm md:text-base"
                 placeholder="Enter your name"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-outline uppercase tracking-widest ml-2">Phone Number</label>
+              <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest ml-2">Phone Number</label>
               <input 
                 type="tel" required
                 value={formData.phone}
                 onChange={e => setFormData({...formData, phone: e.target.value})}
-                className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 font-bold"
+                className="w-full bg-surface-container-low p-3 md:p-4 rounded-xl md:rounded-2xl border-none focus:ring-2 ring-primary/20 font-bold text-sm md:text-base"
                 placeholder="07XX XXX XXX"
               />
             </div>
             <button 
               type="submit"
               disabled={submitting}
-              className="w-full bg-primary text-on-primary py-5 rounded-2xl font-bold text-lg hover:bg-primary-container transition-all flex items-center justify-center gap-3 shadow-xl shadow-primary/20 mt-4"
+              className="w-full bg-primary text-on-primary py-4 md:py-5 rounded-xl md:rounded-2xl font-bold text-base md:text-lg hover:bg-primary-container transition-all flex items-center justify-center gap-2 md:gap-3 shadow-xl shadow-primary/20 mt-4"
             >
               {submitting ? 'Signing in...' : 'Sign in with Phone'} <ArrowRight className="w-5 h-5" />
             </button>

@@ -54,10 +54,19 @@ export const MyTicketsPage = () => {
       setComplaints(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Complaint)));
     }, (error) => handleFirestoreError(error, OperationType.LIST, 'complaints'));
 
-    // Staff notifications - check both by UID and by email just in case
-    const qNotifications = query(collection(db, 'staff_notifications'), where('staffId', '==', user.uid), orderBy('createdAt', 'desc'));
+    // Staff notifications - check by UID or by phone number
+    const qNotifications = query(
+      collection(db, 'staff_notifications'), 
+      orderBy('createdAt', 'desc')
+    );
     const unsubNotifications = onSnapshot(qNotifications, (snapshot) => {
-      setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StaffNotification)));
+      const allNotifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StaffNotification));
+      // Filter client-side to handle both UID and Phone matching
+      const filtered = allNotifs.filter(n => 
+        n.staffId === user.uid || 
+        (profile?.phoneNumber && n.staffContact === profile.phoneNumber)
+      );
+      setNotifications(filtered);
     }, (error) => handleFirestoreError(error, OperationType.LIST, 'staff_notifications'));
 
     return () => { unsubBookings(); unsubComplaints(); unsubNotifications(); };
@@ -161,12 +170,12 @@ export const MyTicketsPage = () => {
 
   return (
     <div className="pt-32 pb-24 px-6 max-w-5xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-6 md:gap-8">
         <div>
-          <h1 className="text-5xl font-black tracking-tight mb-2">My Journeys</h1>
-          <p className="text-on-surface-variant text-lg">Manage your upcoming and past trips with The Kinetic Ledger.</p>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-2">My Journeys</h1>
+          <p className="text-on-surface-variant text-sm md:text-lg">Manage your upcoming and past trips with The Kinetic Ledger.</p>
         </div>
-        <Link to="/" className="bg-primary-fixed text-primary px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-primary-container transition-all">
+        <Link to="/" className="w-full md:w-auto bg-primary-fixed text-primary px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary-container transition-all">
           Book New Trip <ArrowRight className="w-5 h-5" />
         </Link>
       </div>
@@ -183,74 +192,74 @@ export const MyTicketsPage = () => {
             <div 
               key={booking.id} 
               className={cn(
-                "group block bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all duration-500 relative overflow-hidden",
+                "group block bg-surface-container-lowest p-5 md:p-8 rounded-3xl md:rounded-[40px] border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all duration-500 relative overflow-hidden",
                 booking.status === 'cancelled' && "opacity-60 grayscale"
               )}
             >
-              <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
-                <div className="flex items-center gap-6">
-                  <div className="bg-surface-container-low p-5 rounded-3xl group-hover:bg-primary-fixed transition-colors">
-                    <BusIcon className="text-primary w-8 h-8" />
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 relative z-10">
+                <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
+                  <div className="bg-surface-container-low p-4 md:p-5 rounded-2xl md:rounded-3xl group-hover:bg-primary-fixed transition-colors">
+                    <BusIcon className="text-primary w-6 h-6 md:w-8 md:h-8" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-2xl font-bold">{booking.busOperator}</h3>
+                    <div className="flex items-center gap-2 md:gap-3 mb-1">
+                      <h3 className="text-xl md:text-2xl font-bold">{booking.busOperator}</h3>
                       <span className={cn(
-                        "text-[10px] font-black px-2 py-0.5 rounded-full uppercase",
+                        "text-[8px] md:text-[10px] font-black px-2 py-0.5 rounded-full uppercase",
                         booking.status === 'cancelled' ? "bg-error-container text-error" : "bg-secondary-container text-secondary"
                       )}>
                         {booking.status === 'cancelled' ? 'CANCELLED' : booking.paymentStatus}
                       </span>
                     </div>
-                    <p className="text-on-surface-variant font-medium">Kampala → Lira</p>
+                    <p className="text-xs md:text-on-surface-variant font-medium">Kampala → Lira</p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-8 md:gap-12">
-                  <div className="text-center">
-                    <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Departure</p>
-                    <div className="flex items-center gap-2 font-bold">
+                <div className="flex justify-between md:justify-center gap-4 md:gap-12 w-full md:w-auto border-y md:border-none py-4 md:py-0 border-outline-variant/10">
+                  <div className="text-left md:text-center">
+                    <p className="text-[8px] md:text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Departure</p>
+                    <div className="flex items-center gap-2 font-bold text-sm md:text-base">
                       <Calendar className="w-4 h-4 text-primary" />
                       <span>{format(booking.departureTime.toDate(), 'MMM dd, yyyy')}</span>
                     </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Seats</p>
-                    <div className="flex items-center gap-2 font-bold">
+                  <div className="text-right md:text-center">
+                    <p className="text-[8px] md:text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Seats</p>
+                    <div className="flex items-center gap-2 font-bold text-sm md:text-base">
                       <CheckCircle2 className="w-4 h-4 text-primary" />
                       <span>{booking.seatNumbers.join(', ')}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-4">
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-outline uppercase">Total Paid</p>
-                    <p className="text-xl font-black text-primary">{booking.totalPrice.toLocaleString()} UGX</p>
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-4">
+                  <div className="text-left md:text-right">
+                    <p className="text-[10px] font-bold text-outline uppercase">Total Paid</p>
+                    <p className="text-lg md:text-xl font-black text-primary">{booking.totalPrice.toLocaleString()} UGX</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {booking.status !== 'cancelled' && (
                       <>
                         <button 
                           onClick={() => { setEditingBooking(booking); setNewSeats(booking.seatNumbers); setShowEditModal(true); }}
-                          className="p-3 bg-surface-container-low text-on-surface-variant rounded-xl hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2 text-xs font-bold"
+                          className="p-2.5 md:p-3 bg-surface-container-low text-on-surface-variant rounded-xl hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2 text-[10px] md:text-xs font-bold"
                         >
-                          <Edit className="w-4 h-4" /> Edit
+                          <Edit className="w-3.5 h-3.5 md:w-4 md:h-4" /> Edit
                         </button>
                         <button 
                           onClick={() => handleCancel(booking)}
                           disabled={cancellingId === booking.id}
-                          className="p-3 bg-error-container text-error rounded-xl hover:bg-error hover:text-on-error transition-all flex items-center gap-2 text-xs font-bold"
+                          className="p-2.5 md:p-3 bg-error-container text-error rounded-xl hover:bg-error hover:text-on-error transition-all flex items-center gap-2 text-[10px] md:text-xs font-bold"
                         >
-                          <XCircle className="w-4 h-4" /> {cancellingId === booking.id ? 'Cancelling...' : 'Cancel'}
+                          <XCircle className="w-3.5 h-3.5 md:w-4 md:h-4" /> {cancellingId === booking.id ? '...' : 'Cancel'}
                         </button>
                       </>
                     )}
                     <Link 
                       to={`/confirmation/${booking.id}`}
-                      className="p-3 bg-surface-container-low text-on-surface-variant rounded-xl hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2 text-xs font-bold"
+                      className="p-2.5 md:p-3 bg-surface-container-low text-on-surface-variant rounded-xl hover:bg-primary hover:text-on-primary transition-all flex items-center gap-2 text-[10px] md:text-xs font-bold"
                     >
-                      <Ticket className="w-4 h-4" /> View Ticket
+                      <Ticket className="w-3.5 h-3.5 md:w-4 md:h-4" /> Ticket
                     </Link>
                   </div>
                 </div>

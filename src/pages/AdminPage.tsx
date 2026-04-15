@@ -51,6 +51,7 @@ export const AdminPage = () => {
   const [respondingTo, setRespondingTo] = React.useState<any | null>(null);
   const [responseMessage, setResponseMessage] = React.useState('');
   const [editingMaintenance, setEditingMaintenance] = React.useState<Bus | null>(null);
+  const [confirmAction, setConfirmAction] = React.useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
   const [maintenanceForm, setMaintenanceForm] = React.useState({
     fuelLevel: 0,
     lastServiceDate: '',
@@ -61,10 +62,12 @@ export const AdminPage = () => {
   });
   
   // Form states
-  const [newBus, setNewBus] = React.useState({ operator: '', price: '', departureTime: '', driverId: '', conductorId: '', imageUrl: '' });
+  const [newBus, setNewBus] = React.useState({ operator: '', route: 'Kampala-Lira', price: '', departureTime: '', driverId: '', conductorId: '', imageUrl: '' });
   const [newStaff, setNewStaff] = React.useState({ name: '', contact: '', type: 'driver' as 'driver' | 'conductor' });
   const [searchTerm, setSearchTerm] = React.useState('');
   const [filterStatus, setFilterStatus] = React.useState('all');
+  const [userSearch, setUserSearch] = React.useState('');
+  const [emailToPromote, setEmailToPromote] = React.useState('');
 
   React.useEffect(() => {
     const unsubBookings = onSnapshot(query(collection(db, 'bookings'), orderBy('createdAt', 'desc')), (snap) => {
@@ -116,7 +119,7 @@ export const AdminPage = () => {
       
       await addDoc(collection(db, 'buses'), {
         operator: newBus.operator,
-        route: 'Kampala-Lira',
+        route: newBus.route,
         imageUrl: newBus.imageUrl,
         departureTime: Timestamp.fromDate(new Date(newBus.departureTime)),
         price: parseInt(newBus.price),
@@ -128,7 +131,7 @@ export const AdminPage = () => {
         status: 'idle',
         progress: 0
       });
-      setNewBus({ operator: '', price: '', departureTime: '', driverId: '', conductorId: '', imageUrl: '' });
+      setNewBus({ operator: '', route: 'Kampala-Lira', price: '', departureTime: '', driverId: '', conductorId: '', imageUrl: '' });
     } catch (err) { handleFirestoreError(err, OperationType.WRITE, 'buses'); }
   };
 
@@ -143,10 +146,11 @@ export const AdminPage = () => {
     } catch (err) { handleFirestoreError(err, OperationType.WRITE, 'staff'); }
   };
 
-  const sendStaffNotification = async (staffId: string, message: string) => {
+  const sendStaffNotification = async (staffId: string, message: string, staffContact?: string) => {
     try {
       await addDoc(collection(db, 'staff_notifications'), {
         staffId,
+        staffContact: staffContact || null,
         message,
         type: 'assignment',
         read: false,
@@ -237,16 +241,43 @@ export const AdminPage = () => {
   };
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-screen-2xl mx-auto">
+    <div className="pt-20 md:pt-32 pb-24 px-3 md:px-6 max-w-7xl mx-auto">
+      {/* Custom Confirmation Modal */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface-container-lowest rounded-[32px] p-6 md:p-8 max-w-md w-full shadow-2xl border border-outline-variant/10">
+            <h3 className="text-xl font-bold mb-2">{confirmAction.title}</h3>
+            <p className="text-on-surface-variant text-sm mb-6">{confirmAction.message}</p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setConfirmAction(null)}
+                className="flex-1 px-6 py-3 rounded-xl font-bold text-sm bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  confirmAction.onConfirm();
+                  setConfirmAction(null);
+                }}
+                className="flex-1 px-6 py-3 rounded-xl font-bold text-sm bg-primary text-on-primary hover:bg-primary-container transition-all"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Maintenance Edit Modal */}
       {editingMaintenance && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 md:p-6">
           <div className="absolute inset-0 bg-on-surface/60 backdrop-blur-md" onClick={() => setEditingMaintenance(null)} />
-          <div className="relative bg-surface p-10 rounded-[40px] shadow-2xl max-w-xl w-full border border-outline-variant/10">
-            <div className="flex justify-between items-start mb-8">
+          <div className="relative bg-surface p-6 md:p-10 rounded-[32px] md:rounded-[40px] shadow-2xl max-w-xl w-full border border-outline-variant/10 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-6 md:mb-8">
               <div>
-                <h2 className="text-3xl font-black mb-1">Edit Maintenance</h2>
-                <p className="text-on-surface-variant font-medium">{editingMaintenance.operator} Fleet Records</p>
+                <h2 className="text-2xl md:text-3xl font-black mb-1">Edit Maintenance</h2>
+                <p className="text-on-surface-variant font-medium text-sm md:text-base">{editingMaintenance.operator} Fleet Records</p>
               </div>
               <button onClick={() => setEditingMaintenance(null)} className="p-2 hover:bg-surface-container rounded-full transition-all">
                 <XCircle className="w-8 h-8 text-outline" />
@@ -332,13 +363,13 @@ export const AdminPage = () => {
 
       {/* Tracking Modal */}
       {trackingBus && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6">
           <div className="absolute inset-0 bg-on-surface/60 backdrop-blur-md" onClick={() => setTrackingBus(null)} />
-          <div className="relative bg-surface p-10 rounded-[40px] shadow-2xl max-w-2xl w-full border border-outline-variant/10">
-            <div className="flex justify-between items-start mb-8">
+          <div className="relative bg-surface p-6 md:p-10 rounded-[32px] md:rounded-[40px] shadow-2xl max-w-2xl w-full border border-outline-variant/10 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-6 md:mb-8">
               <div>
-                <h2 className="text-3xl font-black mb-1">Live Tracking</h2>
-                <p className="text-on-surface-variant font-medium">{trackingBus.operator} • Kampala → Lira</p>
+                <h2 className="text-2xl md:text-3xl font-black mb-1">Live Tracking</h2>
+                <p className="text-on-surface-variant font-medium text-sm md:text-base">{trackingBus.operator} • Kampala → Lira</p>
               </div>
               <button onClick={() => setTrackingBus(null)} className="p-2 hover:bg-surface-container rounded-full transition-all">
                 <XCircle className="w-8 h-8 text-outline" />
@@ -462,18 +493,18 @@ export const AdminPage = () => {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 md:mb-12 gap-4 md:gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight mb-2">Admin Command Center</h1>
-          <p className="text-on-surface-variant">Precision management for The Kinetic Ledger fleet.</p>
+          <h1 className="text-2xl md:text-4xl font-black tracking-tight mb-1 md:mb-2">Admin Command Center</h1>
+          <p className="text-on-surface-variant text-xs md:text-base">Precision management for The Kinetic Ledger fleet.</p>
         </div>
-        <div className="flex bg-surface-container-low p-1.5 rounded-2xl overflow-x-auto max-w-full">
+        <div className="flex bg-surface-container-low p-1 rounded-xl md:rounded-2xl overflow-x-auto max-w-full no-scrollbar">
           {['overview', 'bookings', 'buses', 'staff', 'users', 'complaints', 'maintenance'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
               className={cn(
-                "px-6 py-2.5 rounded-xl font-bold text-sm transition-all capitalize whitespace-nowrap",
+                "px-3 md:px-6 py-1.5 md:py-2.5 rounded-lg md:rounded-xl font-bold text-[10px] md:text-sm transition-all capitalize whitespace-nowrap",
                 activeTab === tab ? "bg-primary text-on-primary shadow-lg" : "text-on-surface-variant hover:bg-surface-container"
               )}
             >
@@ -484,70 +515,70 @@ export const AdminPage = () => {
       </div>
 
       {activeTab === 'overview' && (
-        <div className="space-y-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm">
+        <div className="space-y-8 md:space-y-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm">
               <div className="flex justify-between items-start mb-4">
-                <div className="bg-primary-fixed p-4 rounded-2xl text-primary"><TrendingUp className="w-6 h-6" /></div>
-                <span className="flex items-center gap-1 text-xs font-bold text-primary bg-primary-fixed/20 px-2 py-1 rounded-full"><ArrowUpRight className="w-3 h-3" /> 12%</span>
+                <div className="bg-primary-fixed p-3 md:p-4 rounded-2xl text-primary"><TrendingUp className="w-5 h-5 md:w-6 md:h-6" /></div>
+                <span className="flex items-center gap-1 text-[10px] md:text-xs font-bold text-primary bg-primary-fixed/20 px-2 py-1 rounded-full"><ArrowUpRight className="w-3 h-3" /> 12%</span>
               </div>
-              <p className="text-xs font-bold text-outline uppercase tracking-widest mb-1">Total Revenue</p>
-              <p className="text-3xl font-black">{stats.totalRevenue.toLocaleString()} <span className="text-sm font-bold text-outline">UGX</span></p>
+              <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-1">Total Revenue</p>
+              <p className="text-2xl md:text-3xl font-black">{stats.totalRevenue.toLocaleString()} <span className="text-xs md:text-sm font-bold text-outline">UGX</span></p>
             </div>
 
-            <div className="bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm">
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm">
               <div className="flex justify-between items-start mb-4">
-                <div className="bg-secondary-container p-4 rounded-2xl text-secondary"><Calendar className="w-6 h-6" /></div>
-                <span className="flex items-center gap-1 text-xs font-bold text-secondary bg-secondary-container/20 px-2 py-1 rounded-full"><ArrowUpRight className="w-3 h-3" /> 8%</span>
+                <div className="bg-secondary-container p-3 md:p-4 rounded-2xl text-secondary"><Calendar className="w-5 h-5 md:w-6 md:h-6" /></div>
+                <span className="flex items-center gap-1 text-[10px] md:text-xs font-bold text-secondary bg-secondary-container/20 px-2 py-1 rounded-full"><ArrowUpRight className="w-3 h-3" /> 8%</span>
               </div>
-              <p className="text-xs font-bold text-outline uppercase tracking-widest mb-1">Total Bookings</p>
-              <p className="text-3xl font-black">{stats.totalBookings}</p>
+              <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-1">Total Bookings</p>
+              <p className="text-2xl md:text-3xl font-black">{stats.totalBookings}</p>
             </div>
 
-            <div className="bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm">
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm">
               <div className="flex justify-between items-start mb-4">
-                <div className="bg-error-container p-4 rounded-2xl text-error"><XCircle className="w-6 h-6" /></div>
-                <span className="flex items-center gap-1 text-xs font-bold text-error bg-error-container/20 px-2 py-1 rounded-full"><ArrowDownRight className="w-3 h-3" /> 2%</span>
+                <div className="bg-error-container p-3 md:p-4 rounded-2xl text-error"><XCircle className="w-5 h-5 md:w-6 md:h-6" /></div>
+                <span className="flex items-center gap-1 text-[10px] md:text-xs font-bold text-error bg-error-container/20 px-2 py-1 rounded-full"><ArrowDownRight className="w-3 h-3" /> 2%</span>
               </div>
-              <p className="text-xs font-bold text-outline uppercase tracking-widest mb-1">Cancellations</p>
-              <p className="text-3xl font-black">{stats.cancelledCount}</p>
+              <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-1">Cancellations</p>
+              <p className="text-2xl md:text-3xl font-black">{stats.cancelledCount}</p>
             </div>
 
-            <div className="bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm">
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm">
               <div className="flex justify-between items-start mb-4">
-                <div className="bg-tertiary-fixed p-4 rounded-2xl text-tertiary"><BusIcon className="w-6 h-6" /></div>
-                <span className="flex items-center gap-1 text-xs font-bold text-tertiary bg-tertiary-fixed/20 px-2 py-1 rounded-full">{stats.avgOccupancy}%</span>
+                <div className="bg-tertiary-fixed p-3 md:p-4 rounded-2xl text-tertiary"><BusIcon className="w-5 h-5 md:w-6 md:h-6" /></div>
+                <span className="flex items-center gap-1 text-[10px] md:text-xs font-bold text-tertiary bg-tertiary-fixed/20 px-2 py-1 rounded-full">{stats.avgOccupancy}%</span>
               </div>
-              <p className="text-xs font-bold text-outline uppercase tracking-widest mb-1">Avg Occupancy</p>
-              <p className="text-3xl font-black">{stats.activeBuses} <span className="text-sm font-bold text-outline">Buses</span></p>
+              <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-1">Avg Occupancy</p>
+              <p className="text-2xl md:text-3xl font-black">{stats.activeBuses} <span className="text-xs md:text-sm font-bold text-outline">Buses</span></p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold">Recent Activity</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm">
+              <div className="flex justify-between items-center mb-6 md:mb-8">
+                <h2 className="text-xl md:text-2xl font-bold">Recent Activity</h2>
                 <button onClick={() => setActiveTab('bookings')} className="text-primary text-sm font-bold hover:underline">View All</button>
               </div>
               <div className="space-y-4">
                 {bookings.slice(0, 6).map((b) => (
-                  <div key={b.id} className="flex items-center justify-between p-4 bg-surface-container-low rounded-2xl border border-outline-variant/5">
-                    <div className="flex items-center gap-4">
+                  <div key={b.id} className="flex items-center justify-between p-3 md:p-4 bg-surface-container-low rounded-2xl border border-outline-variant/5">
+                    <div className="flex items-center gap-3 md:gap-4">
                       <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center font-bold",
+                        "w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-xs md:text-base",
                         b.status === 'cancelled' ? "bg-error-container text-error" : "bg-primary-fixed text-primary"
                       )}>
                         {b.customerName[0]}
                       </div>
                       <div>
-                        <p className="font-bold">{b.customerName}</p>
-                        <p className="text-xs text-on-surface-variant">{b.busOperator} • {b.seatNumbers.join(', ')}</p>
+                        <p className="font-bold text-sm md:text-base">{b.customerName}</p>
+                        <p className="text-[10px] md:text-xs text-on-surface-variant">{b.busOperator} • {b.seatNumbers.join(', ')}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-primary">{b.totalPrice.toLocaleString()} UGX</p>
+                      <p className="font-bold text-primary text-sm md:text-base">{b.totalPrice.toLocaleString()} UGX</p>
                       <span className={cn(
-                        "text-[10px] font-black uppercase px-2 py-0.5 rounded-full",
+                        "text-[8px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-full",
                         b.status === 'cancelled' ? 'bg-error-container text-error' : 'bg-secondary-container text-secondary'
                       )}>
                         {b.status === 'cancelled' ? 'CANCELLED' : b.paymentStatus}
@@ -558,24 +589,24 @@ export const AdminPage = () => {
               </div>
             </div>
             
-            <div className="bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm">
-              <h2 className="text-2xl font-bold mb-8">Fleet Status</h2>
-              <div className="space-y-8">
+            <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm">
+              <h2 className="text-xl md:text-2xl font-bold mb-6 md:mb-8">Fleet Status</h2>
+              <div className="space-y-6 md:space-y-8">
                 {buses.map((bus) => {
                   const percent = (bus.bookedSeats.length / bus.totalSeats) * 100;
                   return (
                     <div key={bus.id} className="space-y-3">
                       <div className="flex justify-between items-end">
                         <div>
-                          <p className="font-bold text-lg">{bus.operator}</p>
-                          <p className="text-xs text-outline flex items-center gap-1"><Clock className="w-3 h-3" /> {format(bus.departureTime.toDate(), 'hh:mm a')} • Kampala → Lira</p>
+                          <p className="font-bold text-base md:text-lg">{bus.operator}</p>
+                          <p className="text-[10px] md:text-xs text-outline flex items-center gap-1"><Clock className="w-3 h-3" /> {format(bus.departureTime.toDate(), 'hh:mm a')} • Kampala → Lira</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-black text-primary">{percent.toFixed(0)}% Full</p>
-                          <p className="text-[10px] font-bold text-outline">{bus.bookedSeats.length} / {bus.totalSeats} Seats</p>
+                          <p className="text-xs md:text-sm font-black text-primary">{percent.toFixed(0)}% Full</p>
+                          <p className="text-[8px] md:text-[10px] font-bold text-outline">{bus.bookedSeats.length} / {bus.totalSeats} Seats</p>
                         </div>
                       </div>
-                      <div className="h-4 bg-surface-container-low rounded-full overflow-hidden p-1">
+                      <div className="h-3 md:h-4 bg-surface-container-low rounded-full overflow-hidden p-0.5 md:p-1">
                         <div 
                           className={cn("h-full rounded-full transition-all duration-1000", percent > 80 ? 'bg-error' : percent > 50 ? 'bg-tertiary' : 'bg-primary')} 
                           style={{ width: `${percent}%` }}
@@ -591,24 +622,24 @@ export const AdminPage = () => {
       )}
 
       {activeTab === 'bookings' && (
-        <div className="bg-surface-container-lowest rounded-[40px] border border-outline-variant/10 shadow-sm overflow-hidden">
-          <div className="p-8 border-b border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="relative w-full md:w-96">
+        <div className="bg-surface-container-lowest rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm overflow-hidden">
+          <div className="p-4 md:p-8 border-b border-outline-variant/10 flex flex-col lg:flex-row justify-between items-center gap-4 md:gap-6">
+            <div className="relative w-full lg:w-96">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-outline w-5 h-5" />
               <input 
                 type="text" 
                 placeholder="Search by name or ticket ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-surface-container-low pl-12 pr-4 py-3 rounded-2xl border-none focus:ring-2 ring-primary/20"
+                className="w-full bg-surface-container-low pl-12 pr-4 py-3 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
               />
             </div>
-            <div className="flex items-center gap-4">
-              <Filter className="text-outline w-5 h-5" />
+            <div className="flex items-center gap-4 w-full lg:w-auto">
+              <Filter className="text-outline w-5 h-5 shrink-0" />
               <select 
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="bg-surface-container-low px-4 py-3 rounded-2xl border-none focus:ring-2 ring-primary/20 font-bold text-sm"
+                className="flex-1 lg:flex-none bg-surface-container-low px-4 py-3 rounded-2xl border-none focus:ring-2 ring-primary/20 font-bold text-sm"
               >
                 <option value="all">All Payments</option>
                 <option value="PAID">Paid</option>
@@ -616,47 +647,48 @@ export const AdminPage = () => {
               </select>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto no-scrollbar">
+            <table className="w-full text-left min-w-[800px]">
               <thead>
-                <tr className="bg-surface-container-low text-xs font-bold text-outline uppercase tracking-widest">
-                  <th className="px-8 py-4">Customer</th>
-                  <th className="px-8 py-4">Bus / Route</th>
-                  <th className="px-8 py-4">Seats</th>
-                  <th className="px-8 py-4">Payment</th>
-                  <th className="px-8 py-4">Time</th>
-                  <th className="px-8 py-4">Ticket ID</th>
+                <tr className="bg-surface-container-low text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest">
+                  <th className="px-4 md:px-8 py-4">Customer</th>
+                  <th className="px-4 md:px-8 py-4">Bus / Route</th>
+                  <th className="px-4 md:px-8 py-4">Seats</th>
+                  <th className="px-4 md:px-8 py-4">Payment</th>
+                  <th className="px-4 md:px-8 py-4">Time</th>
+                  <th className="px-4 md:px-8 py-4">Ticket ID</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
                 {filteredBookings.map((b) => (
                   <tr key={b.id} className="hover:bg-surface-container-low/50 transition-colors">
-                    <td className="px-8 py-6">
-                      <p className="font-bold">{b.customerName}</p>
-                      <p className="text-xs text-on-surface-variant">{b.customerPhone}</p>
+                    <td className="px-4 md:px-8 py-4 md:py-6">
+                      <p className="font-bold text-sm md:text-base">{b.customerName}</p>
+                      <p className="text-[10px] md:text-xs text-on-surface-variant">{b.customerPhone}</p>
                     </td>
-                    <td className="px-8 py-6">
-                      <p className="font-bold">{b.busOperator}</p>
-                      <p className="text-xs text-on-surface-variant">Kampala → Lira</p>
+                    <td className="px-4 md:px-8 py-4 md:py-6">
+                      <p className="font-bold text-sm md:text-base">{b.busOperator}</p>
+                      <p className="text-[10px] md:text-xs text-on-surface-variant">Kampala → Lira</p>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-4 md:px-8 py-4 md:py-6">
                       <div className="flex flex-wrap gap-1">
                         {b.seatNumbers.map(s => (
-                          <span key={s} className="bg-primary-fixed text-primary text-[10px] font-bold px-2 py-0.5 rounded-md">{s}</span>
+                          <span key={s} className="bg-primary-fixed text-primary text-[8px] md:text-[10px] font-bold px-2 py-0.5 rounded-md">{s}</span>
                         ))}
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <span className={cn("text-[10px] font-black uppercase px-3 py-1 rounded-full", 
+                    <td className="px-4 md:px-8 py-4 md:py-6">
+                      <span className={cn("text-[8px] md:text-[10px] font-black uppercase px-2 md:px-3 py-1 rounded-full", 
                         b.paymentStatus === 'PAID' ? 'bg-secondary-container text-secondary' : 'bg-error-container text-error'
                       )}>
                         {b.paymentStatus}
                       </span>
                     </td>
-                    <td className="px-8 py-6">
-                      <p className="text-sm">{format(b.createdAt.toDate(), 'MMM dd, HH:mm')}</p>
+                    <td className="px-4 md:px-8 py-4 md:py-6">
+                      <p className="text-xs md:text-sm">{format(b.createdAt.toDate(), 'MMM dd, HH:mm')}</p>
                     </td>
-                    <td className="px-8 py-6 font-mono text-xs text-outline">
+                    <td className="px-4 md:px-8 py-4 md:py-6 font-mono text-[10px] md:text-xs text-outline">
                       {b.id.substring(0, 8).toUpperCase()}
                     </td>
                   </tr>
@@ -664,77 +696,126 @@ export const AdminPage = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-outline-variant/10">
+            {filteredBookings.map((b) => (
+              <div key={b.id} className="p-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-bold text-sm">{b.customerName}</p>
+                    <p className="text-[10px] text-on-surface-variant">{b.customerPhone}</p>
+                  </div>
+                  <span className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full", 
+                    b.paymentStatus === 'PAID' ? 'bg-secondary-container text-secondary' : 'bg-error-container text-error'
+                  )}>
+                    {b.paymentStatus}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-[10px]">
+                  <div>
+                    <p className="font-bold">{b.busOperator}</p>
+                    <p className="text-on-surface-variant">Kampala → Lira</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-outline">{format(b.createdAt.toDate(), 'MMM dd, HH:mm')}</p>
+                    <p className="font-mono text-outline uppercase">{b.id.substring(0, 8)}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {b.seatNumbers.map(s => (
+                    <span key={s} className="bg-primary-fixed text-primary text-[8px] font-bold px-2 py-0.5 rounded-md">{s}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {activeTab === 'buses' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1 bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm h-fit">
-            <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="lg:col-span-1 bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm h-fit">
+            <h2 className="text-xl md:text-2xl font-bold mb-6 md:mb-8 flex items-center gap-3">
               <Plus className="text-primary" /> Add New Bus
             </h2>
-            <form onSubmit={handleAddBus} className="space-y-6">
+            <form onSubmit={handleAddBus} className="space-y-4 md:space-y-6">
               <div>
-                <label className="text-xs font-bold text-outline uppercase tracking-widest block mb-2">Operator Name</label>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Operator Name</label>
                 <input 
                   type="text" required
                   value={newBus.operator}
                   onChange={e => setNewBus({...newBus, operator: e.target.value})}
-                  className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20"
+                  className="w-full bg-surface-container-low p-3 md:p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
                   placeholder="e.g. Ledger Express"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-outline uppercase tracking-widest block mb-2">Price (UGX)</label>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Route</label>
+                <select 
+                  value={newBus.route}
+                  onChange={e => setNewBus({...newBus, route: e.target.value})}
+                  className="w-full bg-surface-container-low p-3 md:p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
+                >
+                  <option value="Kampala-Lira">Kampala → Lira</option>
+                  <option value="Lira-Kampala">Lira → Kampala</option>
+                  <option value="Kampala-Mbarara">Kampala → Mbarara</option>
+                  <option value="Mbarara-Kampala">Mbarara → Kampala</option>
+                  <option value="Kampala-Gulu">Kampala → Gulu</option>
+                  <option value="Gulu-Kampala">Gulu → Kampala</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Price (UGX)</label>
                 <input 
                   type="number" required
                   value={newBus.price}
                   onChange={e => setNewBus({...newBus, price: e.target.value})}
-                  className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20"
+                  className="w-full bg-surface-container-low p-3 md:p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
                   placeholder="35000"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-outline uppercase tracking-widest block mb-2">Departure Time</label>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Departure Time</label>
                 <input 
                   type="datetime-local" required
                   value={newBus.departureTime}
                   onChange={e => setNewBus({...newBus, departureTime: e.target.value})}
-                  className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20"
+                  className="w-full bg-surface-container-low p-3 md:p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-outline uppercase tracking-widest block mb-2">Assign Driver</label>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Assign Driver</label>
                 <select 
                   value={newBus.driverId}
                   onChange={e => setNewBus({...newBus, driverId: e.target.value})}
-                  className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20"
+                  className="w-full bg-surface-container-low p-3 md:p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
                 >
                   <option value="">Select Driver</option>
                   {drivers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold text-outline uppercase tracking-widest block mb-2">Bus Image URL (Optional)</label>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Bus Image URL (Optional)</label>
                 <input 
                   type="url"
                   value={newBus.imageUrl}
                   onChange={e => setNewBus({...newBus, imageUrl: e.target.value})}
-                  className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20"
+                  className="w-full bg-surface-container-low p-3 md:p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
                   placeholder="https://images.unsplash.com/..."
                 />
               </div>
-              <button type="submit" className="w-full bg-primary text-on-primary py-4 rounded-2xl font-bold hover:bg-primary-container transition-all">
+              <button type="submit" className="w-full bg-primary text-on-primary py-3 md:py-4 rounded-2xl font-bold hover:bg-primary-container transition-all text-sm">
                 Create Schedule
               </button>
             </form>
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {buses.map(bus => (
-              <div key={bus.id} className="bg-surface-container-lowest p-8 rounded-[32px] border border-outline-variant/10 shadow-sm flex flex-col md:flex-row justify-between items-center gap-8">
-                <div className="flex items-center gap-6">
-                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden shrink-0">
+              <div key={bus.id} className="bg-surface-container-lowest p-4 md:p-8 rounded-[24px] md:rounded-[32px] border border-outline-variant/10 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 md:gap-8">
+                <div className="flex items-center gap-4 md:gap-6 w-full sm:w-auto">
+                  <div className="relative w-16 h-16 md:w-24 md:h-24 rounded-2xl overflow-hidden shrink-0">
                     <img 
                       src={bus.imageUrl || `https://picsum.photos/seed/${bus.operator.replace(/\s+/g, '-').toLowerCase()}/200/200`} 
                       className="w-full h-full object-cover"
@@ -742,9 +823,9 @@ export const AdminPage = () => {
                       alt={bus.operator}
                     />
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold">{bus.operator}</h3>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-on-surface-variant mt-1">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg md:text-2xl font-bold truncate">{bus.operator}</h3>
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-[10px] md:text-xs text-on-surface-variant mt-1">
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {format(bus.departureTime.toDate(), 'MMM dd, HH:mm')}</span>
                       <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {bus.bookedSeats.length}/{bus.totalSeats} Booked</span>
                       {bus.driverId && (
@@ -752,26 +833,27 @@ export const AdminPage = () => {
                           <UserCheck className="w-4 h-4" /> {drivers.find(d => d.id === bus.driverId)?.name || 'Unknown Driver'}
                         </span>
                       )}
-                      {bus.conductorId && (
-                        <span className="flex items-center gap-1 text-secondary font-bold">
-                          <UserCheck className="w-4 h-4" /> {conductors.find(c => c.id === bus.conductorId)?.name || 'Unknown Conductor'}
-                        </span>
-                      )}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <button 
                     onClick={() => setTrackingBus(bus)}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary-fixed text-primary rounded-xl font-bold text-xs hover:bg-primary hover:text-on-primary transition-all"
+                    className="flex items-center gap-2 px-3 md:px-4 py-2 bg-primary-fixed text-primary rounded-xl font-bold text-[10px] md:text-xs hover:bg-primary hover:text-on-primary transition-all"
                   >
-                    <Navigation className="w-4 h-4" /> Track
+                    <Navigation className="w-3 h-3 md:w-4 md:h-4" /> Track
                   </button>
                   <button 
-                    onClick={() => deleteDoc(doc(db, 'buses', bus.id))}
-                    className="p-3 text-error hover:bg-error-container rounded-2xl transition-all"
+                    onClick={() => {
+                      setConfirmAction({
+                        title: 'Delete Bus',
+                        message: `Are you sure you want to delete ${bus.operator}? This action cannot be undone.`,
+                        onConfirm: () => deleteDoc(doc(db, 'buses', bus.id))
+                      });
+                    }}
+                    className="p-2 md:p-3 text-error hover:bg-error-container rounded-2xl transition-all"
                   >
-                    <Trash2 className="w-6 h-6" />
+                    <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
                   </button>
                 </div>
               </div>
@@ -781,20 +863,20 @@ export const AdminPage = () => {
       )}
 
       {activeTab === 'staff' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1 bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm h-fit">
-            <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="lg:col-span-1 bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm h-fit">
+            <h2 className="text-xl md:text-2xl font-bold mb-6 md:mb-8 flex items-center gap-3">
               <UserCheck className="text-primary" /> Add Staff
             </h2>
-            <form onSubmit={handleAddStaff} className="space-y-6">
+            <form onSubmit={handleAddStaff} className="space-y-4 md:space-y-6">
               <div>
-                <label className="text-xs font-bold text-outline uppercase tracking-widest block mb-2">Staff Type</label>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Staff Type</label>
                 <div className="flex bg-surface-container-low p-1 rounded-xl">
                   {['driver', 'conductor'].map(t => (
                     <button
                       key={t} type="button"
                       onClick={() => setNewStaff({...newStaff, type: t as any})}
-                      className={cn("flex-1 py-2 rounded-lg text-xs font-bold transition-all capitalize", 
+                      className={cn("flex-1 py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all capitalize", 
                         newStaff.type === t ? "bg-white shadow-sm" : "text-outline"
                       )}
                     >
@@ -804,40 +886,40 @@ export const AdminPage = () => {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-outline uppercase tracking-widest block mb-2">Full Name</label>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Full Name</label>
                 <input 
                   type="text" required
                   value={newStaff.name}
                   onChange={e => setNewStaff({...newStaff, name: e.target.value})}
-                  className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20"
+                  className="w-full bg-surface-container-low p-3 md:p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-outline uppercase tracking-widest block mb-2">Contact Number</label>
+                <label className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest block mb-2">Contact Number</label>
                 <input 
                   type="tel" required
                   value={newStaff.contact}
                   onChange={e => setNewStaff({...newStaff, contact: e.target.value})}
-                  className="w-full bg-surface-container-low p-4 rounded-2xl border-none focus:ring-2 ring-primary/20"
+                  className="w-full bg-surface-container-low p-3 md:p-4 rounded-2xl border-none focus:ring-2 ring-primary/20 text-sm"
                 />
               </div>
-              <button type="submit" className="w-full bg-primary text-on-primary py-4 rounded-2xl font-bold hover:bg-primary-container transition-all">
+              <button type="submit" className="w-full bg-primary text-on-primary py-3 md:py-4 rounded-2xl font-bold hover:bg-primary-container transition-all text-sm">
                 Register Staff
               </button>
             </form>
           </div>
 
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {[...drivers.map(d => ({...d, type: 'Driver'})), ...conductors.map(c => ({...c, type: 'Conductor'}))].map((s, i) => (
-              <div key={i} className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", s.type === 'Driver' ? 'bg-primary-fixed text-primary' : 'bg-secondary-container text-secondary')}>
-                    <UserCheck className="w-6 h-6" />
+              <div key={i} className="bg-surface-container-lowest p-4 md:p-6 rounded-3xl border border-outline-variant/10 shadow-sm flex items-center justify-between">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center", s.type === 'Driver' ? 'bg-primary-fixed text-primary' : 'bg-secondary-container text-secondary')}>
+                    <UserCheck className="w-5 h-5 md:w-6 md:h-6" />
                   </div>
                   <div>
-                    <p className="font-bold">{s.name}</p>
-                    <p className="text-xs text-outline flex items-center gap-1"><Phone className="w-3 h-3" /> {s.contact}</p>
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{s.type}</span>
+                    <p className="font-bold text-sm md:text-base">{s.name}</p>
+                    <p className="text-[10px] md:text-xs text-outline flex items-center gap-1"><Phone className="w-3 h-3" /> {s.contact}</p>
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-40">{s.type}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -862,14 +944,14 @@ export const AdminPage = () => {
                           
                           // 3. Send Notification
                           if (targetBus) {
-                            await sendStaffNotification(s.id, `You have been assigned to ${targetBus.operator} for the ${format(targetBus.departureTime.toDate(), 'HH:mm')} journey.`);
+                            await sendStaffNotification(s.id, `You have been assigned to ${targetBus.operator} for the ${format(targetBus.departureTime.toDate(), 'HH:mm')} journey.`, s.contact);
                           }
                         }
                       } catch (err) {
                         handleFirestoreError(err, OperationType.UPDATE, 'buses');
                       }
                     }}
-                    className="bg-surface-container-low px-3 py-2 rounded-xl text-[10px] font-bold border-none focus:ring-1 ring-primary/20"
+                    className="bg-surface-container-low px-2 md:px-3 py-1.5 md:py-2 rounded-xl text-[8px] md:text-[10px] font-bold border-none focus:ring-1 ring-primary/20 max-w-[100px] md:max-w-none"
                   >
                     <option value="">No Assignment</option>
                     {buses.map(b => (
@@ -879,10 +961,16 @@ export const AdminPage = () => {
                     ))}
                   </select>
                   <button 
-                    onClick={() => deleteDoc(doc(db, s.type === 'Driver' ? 'drivers' : 'conductors', s.id))}
-                    className="p-2 text-outline hover:text-error transition-colors"
+                    onClick={() => {
+                      setConfirmAction({
+                        title: 'Delete Staff',
+                        message: `Are you sure you want to remove ${s.name}?`,
+                        onConfirm: () => deleteDoc(doc(db, s.type === 'Driver' ? 'drivers' : 'conductors', s.id))
+                      });
+                    }}
+                    className="p-1.5 md:p-2 text-outline hover:text-error transition-colors"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
                 </div>
               </div>
@@ -891,57 +979,127 @@ export const AdminPage = () => {
         </div>
       )}
       {activeTab === 'users' && (
-        <div className="bg-surface-container-lowest rounded-[40px] border border-outline-variant/10 shadow-sm overflow-hidden">
-          <div className="p-8 border-b border-outline-variant/10">
-            <h2 className="text-2xl font-bold">User Management</h2>
-            <p className="text-on-surface-variant text-sm">Manage user roles and permissions.</p>
+        <div className="bg-surface-container-lowest rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm overflow-hidden">
+          <div className="p-4 md:p-8 border-b border-outline-variant/10 space-y-4 md:space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold">User Management</h2>
+                <p className="text-on-surface-variant text-xs md:text-sm">Manage user roles and permissions.</p>
+              </div>
+              <div className="relative w-full md:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-outline w-4 h-4" />
+                <input 
+                  type="text" 
+                  placeholder="Search users..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="w-full bg-surface-container-low pl-10 pr-4 py-2 rounded-xl border-none focus:ring-2 ring-primary/20 text-sm"
+                />
+              </div>
+            </div>
+            
+            <div className="bg-surface-container-low/50 p-3 md:p-4 rounded-2xl border border-outline-variant/10">
+              <p className="text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest mb-3">Quick Promote by Email</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input 
+                  type="email" 
+                  placeholder="Enter email address..."
+                  value={emailToPromote}
+                  onChange={(e) => setEmailToPromote(e.target.value)}
+                  className="flex-1 bg-surface-container-low px-4 py-2 rounded-xl border-none focus:ring-2 ring-primary/20 text-sm"
+                />
+                <button 
+                  onClick={() => {
+                    if (!emailToPromote) return;
+                    const targetUser = users.find(u => u.email?.toLowerCase() === emailToPromote.toLowerCase());
+                    if (!targetUser) {
+                      notify('User not found. They must sign up first.', 'error');
+                      return;
+                    }
+                    setConfirmAction({
+                      title: 'Promote to Admin',
+                      message: `Are you sure you want to promote ${targetUser.displayName || targetUser.email} to Admin?`,
+                      onConfirm: async () => {
+                        try {
+                          await updateDoc(doc(db, 'users', targetUser.id), { role: 'admin' });
+                          notify('User promoted to Admin successfully!', 'success');
+                          setEmailToPromote('');
+                        } catch (err) {
+                          handleFirestoreError(err, OperationType.UPDATE, `users/${targetUser.id}`);
+                        }
+                      }
+                    });
+                  }}
+                  className="bg-primary text-on-primary px-6 py-2 rounded-xl font-bold text-sm hover:bg-primary-container transition-all whitespace-nowrap"
+                >
+                  Add Admin
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto no-scrollbar">
+            <table className="w-full text-left min-w-[700px]">
               <thead>
-                <tr className="bg-surface-container-low text-xs font-bold text-outline uppercase tracking-widest">
-                  <th className="px-8 py-4">User</th>
-                  <th className="px-8 py-4">Email</th>
-                  <th className="px-8 py-4">Role</th>
-                  <th className="px-8 py-4">Actions</th>
+                <tr className="bg-surface-container-low text-[10px] md:text-xs font-bold text-outline uppercase tracking-widest">
+                  <th className="px-6 md:px-8 py-4">User</th>
+                  <th className="px-6 md:px-8 py-4">Email</th>
+                  <th className="px-6 md:px-8 py-4">Current Role</th>
+                  <th className="px-6 md:px-8 py-4">Change Role</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
-                {users.map((u) => (
+                {users.filter(u => 
+                  u.displayName?.toLowerCase().includes(userSearch.toLowerCase()) || 
+                  u.email?.toLowerCase().includes(userSearch.toLowerCase())
+                ).map((u) => (
                   <tr key={u.id} className="hover:bg-surface-container-low/50 transition-colors">
-                    <td className="px-8 py-6">
+                    <td className="px-6 md:px-8 py-4 md:py-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary-fixed rounded-full flex items-center justify-center text-primary font-bold overflow-hidden">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-primary-fixed rounded-full flex items-center justify-center text-primary font-bold overflow-hidden text-xs md:text-base">
                           {u.photoURL ? <img src={u.photoURL} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : u.displayName?.[0] || u.email?.[0]}
                         </div>
-                        <p className="font-bold">{u.displayName || 'Anonymous'}</p>
+                        <p className="font-bold text-sm md:text-base">{u.displayName || 'Anonymous'}</p>
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-sm">{u.email}</td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 md:px-8 py-4 md:py-6 text-xs md:text-sm">{u.email}</td>
+                    <td className="px-6 md:px-8 py-4 md:py-6">
                       <span className={cn(
-                        "text-[10px] font-black uppercase px-3 py-1 rounded-full",
-                        u.role === 'admin' ? 'bg-primary-fixed text-primary' : 'bg-surface-container-highest text-outline'
+                        "text-[8px] md:text-[10px] font-black uppercase px-2 md:px-3 py-1 rounded-full",
+                        u.role === 'admin' ? 'bg-primary-fixed text-primary' : 
+                        u.role === 'driver' ? 'bg-secondary-container text-secondary' :
+                        u.role === 'conductor' ? 'bg-tertiary-container text-tertiary' :
+                        'bg-surface-container-highest text-outline'
                       )}>
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 md:px-8 py-4 md:py-6">
                       {u.email !== 'gamamediaug@gmail.com' && (
-                        <button 
-                          onClick={async () => {
-                            try {
-                              await updateDoc(doc(db, 'users', u.id), {
-                                role: u.role === 'admin' ? 'client' : 'admin'
-                              });
-                            } catch (err) {
-                              handleFirestoreError(err, OperationType.UPDATE, `users/${u.id}`);
-                            }
+                        <select 
+                          value={u.role}
+                          onChange={(e) => {
+                            const newRole = e.target.value as any;
+                            setConfirmAction({
+                              title: 'Change User Role',
+                              message: `Are you sure you want to change ${u.displayName || u.email}'s role to ${newRole}?`,
+                              onConfirm: async () => {
+                                try {
+                                  await updateDoc(doc(db, 'users', u.id), { role: newRole });
+                                  notify('Role updated successfully!', 'success');
+                                } catch (err) {
+                                  handleFirestoreError(err, OperationType.UPDATE, `users/${u.id}`);
+                                }
+                              }
+                            });
                           }}
-                          className="text-xs font-bold text-primary hover:underline"
+                          className="bg-surface-container-low px-3 py-1.5 rounded-xl text-xs font-bold border-none focus:ring-2 ring-primary/20"
                         >
-                          {u.role === 'admin' ? 'Demote to Client' : 'Promote to Admin'}
-                        </button>
+                          <option value="client">Client</option>
+                          <option value="admin">Admin</option>
+                          <option value="driver">Driver</option>
+                          <option value="conductor">Conductor</option>
+                        </select>
                       )}
                     </td>
                   </tr>
@@ -949,47 +1107,108 @@ export const AdminPage = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-outline-variant/10">
+            {users.filter(u => 
+              u.displayName?.toLowerCase().includes(userSearch.toLowerCase()) || 
+              u.email?.toLowerCase().includes(userSearch.toLowerCase())
+            ).map((u) => (
+              <div key={u.id} className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary-fixed rounded-full flex items-center justify-center text-primary font-bold overflow-hidden text-sm">
+                      {u.photoURL ? <img src={u.photoURL} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" /> : u.displayName?.[0] || u.email?.[0]}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm truncate">{u.displayName || 'Anonymous'}</p>
+                      <p className="text-[10px] text-on-surface-variant truncate">{u.email}</p>
+                    </div>
+                  </div>
+                  <span className={cn(
+                    "text-[8px] font-black uppercase px-2 py-0.5 rounded-full",
+                    u.role === 'admin' ? 'bg-primary-fixed text-primary' : 
+                    u.role === 'driver' ? 'bg-secondary-container text-secondary' :
+                    u.role === 'conductor' ? 'bg-tertiary-container text-tertiary' :
+                    'bg-surface-container-highest text-outline'
+                  )}>
+                    {u.role}
+                  </span>
+                </div>
+                
+                {u.email !== 'gamamediaug@gmail.com' && (
+                  <div className="flex items-center justify-between gap-4 bg-surface-container-low p-2 rounded-xl">
+                    <span className="text-[10px] font-bold text-outline uppercase">Change Role</span>
+                    <select 
+                      value={u.role}
+                      onChange={(e) => {
+                        const newRole = e.target.value as any;
+                        setConfirmAction({
+                          title: 'Change Role',
+                          message: `Change role to ${newRole}?`,
+                          onConfirm: async () => {
+                            try {
+                              await updateDoc(doc(db, 'users', u.id), { role: newRole });
+                              notify('Role updated successfully!', 'success');
+                            } catch (err) {
+                              handleFirestoreError(err, OperationType.UPDATE, `users/${u.id}`);
+                            }
+                          }
+                        });
+                      }}
+                      className="bg-surface-container-highest px-3 py-1 rounded-lg text-[10px] font-bold border-none focus:ring-1 ring-primary/20"
+                    >
+                      <option value="client">Client</option>
+                      <option value="admin">Admin</option>
+                      <option value="driver">Driver</option>
+                      <option value="conductor">Conductor</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {activeTab === 'complaints' && (
-        <div className="space-y-8">
-          <div className="bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm">
-            <h2 className="text-2xl font-bold mb-6">Customer Complaints</h2>
-            <div className="space-y-6">
+        <div className="space-y-6 md:space-y-8">
+          <div className="bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm">
+            <h2 className="text-xl md:text-2xl font-bold mb-6">Customer Complaints</h2>
+            <div className="space-y-4 md:space-y-6">
               {complaints.map((c) => (
-                <div key={c.id} className="p-6 bg-surface-container-low rounded-3xl border border-outline-variant/10">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center text-primary font-bold">
+                <div key={c.id} className="p-4 md:p-6 bg-surface-container-low rounded-3xl border border-outline-variant/10">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-primary-fixed rounded-full flex items-center justify-center text-primary font-bold text-sm md:text-base">
                         {c.userName?.[0] || '?'}
                       </div>
                       <div>
-                        <p className="font-bold text-lg">{c.subject}</p>
-                        <p className="text-xs text-on-surface-variant">From: {c.userName} ({c.userEmail}) • {format(c.createdAt.toDate(), 'MMM dd, HH:mm')}</p>
+                        <p className="font-bold text-base md:text-lg">{c.subject}</p>
+                        <p className="text-[10px] md:text-xs text-on-surface-variant">From: {c.userName} • {format(c.createdAt.toDate(), 'MMM dd, HH:mm')}</p>
                       </div>
                     </div>
                     <span className={cn(
-                      "text-[10px] font-black uppercase px-3 py-1 rounded-full",
+                      "text-[8px] md:text-[10px] font-black uppercase px-2 md:px-3 py-1 rounded-full",
                       c.status === 'resolved' ? 'bg-secondary-container text-secondary' : 'bg-error-container text-error'
                     )}>
                       {c.status}
                     </span>
                   </div>
-                  <p className="text-on-surface-variant mb-6 leading-relaxed bg-surface p-4 rounded-2xl border border-outline-variant/5">
+                  <p className="text-on-surface-variant text-sm md:text-base mb-6 leading-relaxed bg-surface p-3 md:p-4 rounded-2xl border border-outline-variant/5">
                     {c.message}
                   </p>
                   
                   {c.adminResponse ? (
-                    <div className="bg-primary-fixed/10 p-4 rounded-2xl border border-primary/10">
-                      <p className="text-[10px] font-bold text-primary uppercase mb-1">Admin Response</p>
-                      <p className="text-sm italic">"{c.adminResponse}"</p>
+                    <div className="bg-primary-fixed/10 p-3 md:p-4 rounded-2xl border border-primary/10">
+                      <p className="text-[8px] md:text-[10px] font-bold text-primary uppercase mb-1">Admin Response</p>
+                      <p className="text-xs md:text-sm italic">"{c.adminResponse}"</p>
                     </div>
                   ) : (
-                    <div className="flex gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                       <input 
                         type="text" 
                         placeholder="Type your response..."
-                        className="flex-1 bg-surface px-4 py-3 rounded-xl border border-outline-variant/20 text-sm"
+                        className="flex-1 bg-surface px-4 py-2.5 md:py-3 rounded-xl border border-outline-variant/20 text-sm"
                         value={respondingTo?.id === c.id ? responseMessage : ''}
                         onChange={(e) => {
                           setRespondingTo(c);
@@ -1012,7 +1231,7 @@ export const AdminPage = () => {
                             handleFirestoreError(err, OperationType.UPDATE, `complaints/${c.id}`);
                           }
                         }}
-                        className="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold text-sm hover:bg-primary-container transition-all"
+                        className="bg-primary text-on-primary px-6 py-2.5 md:py-3 rounded-xl font-bold text-sm hover:bg-primary-container transition-all"
                       >
                         Send Response
                       </button>
@@ -1021,7 +1240,7 @@ export const AdminPage = () => {
                 </div>
               ))}
               {complaints.length === 0 && (
-                <div className="text-center py-12 text-outline italic">No complaints found.</div>
+                <div className="text-center py-12 text-outline italic text-sm">No complaints found.</div>
               )}
             </div>
           </div>
@@ -1029,12 +1248,12 @@ export const AdminPage = () => {
       )}
 
       {activeTab === 'maintenance' && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-6 md:space-y-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {buses.map((bus) => (
-              <div key={bus.id} className="bg-surface-container-lowest p-8 rounded-[40px] border border-outline-variant/10 shadow-sm">
+              <div key={bus.id} className="bg-surface-container-lowest p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10 shadow-sm">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="relative w-16 h-16 rounded-2xl overflow-hidden shrink-0">
+                  <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-2xl overflow-hidden shrink-0">
                     <img 
                       src={bus.imageUrl || `https://picsum.photos/seed/${bus.operator.replace(/\s+/g, '-').toLowerCase()}/200/200`} 
                       className="w-full h-full object-cover"
@@ -1043,36 +1262,36 @@ export const AdminPage = () => {
                     />
                   </div>
                   <div className={cn(
-                    "px-3 py-1 rounded-full text-[10px] font-black uppercase",
+                    "px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase",
                     (bus.maintenance?.fuelLevel || 0) < 20 ? "bg-error-container text-error" : "bg-secondary-container text-secondary"
                   )}>
                     {(bus.maintenance?.healthStatus || 'Good').toUpperCase()}
                   </div>
                 </div>
                 
-                <h3 className="text-xl font-bold mb-1">{bus.operator}</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-1 truncate">{bus.operator}</h3>
                 <div className="flex justify-between items-center mb-6">
-                  <p className="text-xs text-outline">Kampala → Lira</p>
-                  <p className="text-[10px] font-bold text-primary bg-primary-fixed px-2 py-0.5 rounded-lg">
+                  <p className="text-[10px] md:text-xs text-outline">Kampala → Lira</p>
+                  <p className="text-[8px] md:text-[10px] font-bold text-primary bg-primary-fixed px-2 py-0.5 rounded-lg truncate max-w-[100px]">
                     {drivers.find(d => d.id === bus.driverId)?.name || 'No Driver'}
                   </p>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Fuel Metrics */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5 text-center">
-                      <p className="text-[8px] font-bold text-outline uppercase mb-1">Issued</p>
-                      <p className="text-sm font-black text-primary">{bus.tripData?.fuelIssued || 0}L</p>
+                  <div className="grid grid-cols-3 gap-1.5 md:gap-2">
+                    <div className="p-2 md:p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5 text-center">
+                      <p className="text-[7px] md:text-[8px] font-bold text-outline uppercase mb-1">Issued</p>
+                      <p className="text-xs md:text-sm font-black text-primary">{bus.tripData?.fuelIssued || 0}L</p>
                     </div>
-                    <div className="p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5 text-center">
-                      <p className="text-[8px] font-bold text-outline uppercase mb-1">Used</p>
-                      <p className="text-sm font-black text-secondary">{Math.round(bus.tripData?.fuelConsumed || 0)}L</p>
+                    <div className="p-2 md:p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5 text-center">
+                      <p className="text-[7px] md:text-[8px] font-bold text-outline uppercase mb-1">Used</p>
+                      <p className="text-xs md:text-sm font-black text-secondary">{Math.round(bus.tripData?.fuelConsumed || 0)}L</p>
                     </div>
-                    <div className="p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5 text-center">
-                      <p className="text-[8px] font-bold text-outline uppercase mb-1">Variance</p>
+                    <div className="p-2 md:p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5 text-center">
+                      <p className="text-[7px] md:text-[8px] font-bold text-outline uppercase mb-1">Var</p>
                       <p className={cn(
-                        "text-sm font-black",
+                        "text-xs md:text-sm font-black",
                         (bus.tripData?.fuelVariance || 0) < 0 ? "text-error" : "text-primary"
                       )}>
                         {Math.round(bus.tripData?.fuelVariance || 0)}L
@@ -1082,11 +1301,11 @@ export const AdminPage = () => {
 
                   {/* Fuel Level */}
                   <div className="space-y-2">
-                    <div className="flex justify-between text-[10px] font-bold text-outline uppercase">
+                    <div className="flex justify-between text-[8px] md:text-[10px] font-bold text-outline uppercase">
                       <span>Fuel Level</span>
                       <span className={cn((bus.maintenance?.fuelLevel || 0) < 20 && "text-error")}>{bus.maintenance?.fuelLevel || 0}%</span>
                     </div>
-                    <div className="h-2 bg-surface-container-low rounded-full overflow-hidden">
+                    <div className="h-1.5 md:h-2 bg-surface-container-low rounded-full overflow-hidden">
                       <div 
                         className={cn("h-full transition-all duration-1000", (bus.maintenance?.fuelLevel || 0) < 20 ? "bg-error" : "bg-primary")}
                         style={{ width: `${bus.maintenance?.fuelLevel || 0}%` }}
@@ -1095,54 +1314,60 @@ export const AdminPage = () => {
                   </div>
 
                   {/* Service Info */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5">
-                      <p className="text-[10px] font-bold text-outline uppercase mb-1">Last Service</p>
-                      <p className="text-xs font-bold">{bus.maintenance?.lastServiceDate ? format(bus.maintenance.lastServiceDate.toDate(), 'MMM dd, yyyy') : 'N/A'}</p>
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
+                    <div className="p-2 md:p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5">
+                      <p className="text-[8px] md:text-[10px] font-bold text-outline uppercase mb-1">Last Service</p>
+                      <p className="text-[10px] md:text-xs font-bold">{bus.maintenance?.lastServiceDate ? format(bus.maintenance.lastServiceDate.toDate(), 'MMM dd, yyyy') : 'N/A'}</p>
                     </div>
-                    <div className="p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5">
-                      <p className="text-[10px] font-bold text-outline uppercase mb-1">Next Service</p>
-                      <p className="text-xs font-bold text-primary">{bus.maintenance?.nextServiceDate ? format(bus.maintenance.nextServiceDate.toDate(), 'MMM dd, yyyy') : 'N/A'}</p>
+                    <div className="p-2 md:p-3 bg-surface-container-low rounded-2xl border border-outline-variant/5">
+                      <p className="text-[8px] md:text-[10px] font-bold text-outline uppercase mb-1">Next Service</p>
+                      <p className="text-[10px] md:text-xs font-bold text-primary">{bus.maintenance?.nextServiceDate ? format(bus.maintenance.nextServiceDate.toDate(), 'MMM dd, yyyy') : 'N/A'}</p>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/5">
+                  <div className="p-3 md:p-4 bg-surface-container-low rounded-2xl border border-outline-variant/5">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-outline" />
-                        <span className="text-[10px] font-bold text-outline uppercase">Mileage</span>
+                        <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-outline" />
+                        <span className="text-[8px] md:text-[10px] font-bold text-outline uppercase">Mileage</span>
                       </div>
-                      <span className="font-black text-sm">{(bus.maintenance?.mileage || 0).toLocaleString()} KM</span>
+                      <span className="font-black text-xs md:text-sm">{(bus.maintenance?.mileage || 0).toLocaleString()} KM</span>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
                     <button 
-                      onClick={async () => {
-                        try {
-                          await updateDoc(doc(db, 'buses', bus.id), {
-                            maintenance: {
-                              lastServiceDate: serverTimestamp(),
-                              nextServiceDate: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)), // 30 days later
-                              fuelLevel: 100,
-                              mileage: bus.maintenance?.mileage || 0, // Keep current mileage
-                              healthStatus: 'excellent'
-                            },
-                            tripData: {
-                              fuelIssued: 80, // Reset to standard 80L
-                              fuelConsumed: 0,
-                              fuelVariance: 80,
-                              distanceCovered: 0
+                      onClick={() => {
+                        setConfirmAction({
+                          title: 'Full Service Reset',
+                          message: `Reset all maintenance and trip data for ${bus.operator}?`,
+                          onConfirm: async () => {
+                            try {
+                              await updateDoc(doc(db, 'buses', bus.id), {
+                                maintenance: {
+                                  lastServiceDate: serverTimestamp(),
+                                  nextServiceDate: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)), // 30 days later
+                                  fuelLevel: 100,
+                                  mileage: bus.maintenance?.mileage || 0, // Keep current mileage
+                                  healthStatus: 'excellent'
+                                },
+                                tripData: {
+                                  fuelIssued: 80, // Reset to standard 80L
+                                  fuelConsumed: 0,
+                                  fuelVariance: 80,
+                                  distanceCovered: 0
+                                }
+                              });
+                              notify(`${bus.operator} maintenance records updated!`, 'success');
+                            } catch (err) {
+                              handleFirestoreError(err, OperationType.UPDATE, `buses/${bus.id}`);
                             }
-                          });
-                          notify(`${bus.operator} maintenance records updated!`, 'success');
-                        } catch (err) {
-                          handleFirestoreError(err, OperationType.UPDATE, `buses/${bus.id}`);
-                        }
+                          }
+                        });
                       }}
-                      className="flex-1 py-3 bg-surface-container-highest text-on-surface rounded-xl font-bold text-xs hover:bg-outline-variant/20 transition-all flex items-center justify-center gap-2"
+                      className="flex-1 py-2.5 md:py-3 bg-surface-container-highest text-on-surface rounded-xl font-bold text-[10px] md:text-xs hover:bg-outline-variant/20 transition-all flex items-center justify-center gap-2"
                     >
-                      <AlertCircle className="w-4 h-4" /> Full Service
+                      <AlertCircle className="w-3 h-3 md:w-4 md:h-4" /> Full Service
                     </button>
                     <button 
                       onClick={() => {
@@ -1156,9 +1381,9 @@ export const AdminPage = () => {
                           fuelIssued: bus.tripData?.fuelIssued || 0
                         });
                       }}
-                      className="p-3 bg-primary-fixed text-primary rounded-xl hover:bg-primary hover:text-on-primary transition-all"
+                      className="p-2.5 md:p-3 bg-primary-fixed text-primary rounded-xl hover:bg-primary hover:text-on-primary transition-all"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3 h-3 md:w-4 md:h-4" />
                     </button>
                   </div>
                 </div>

@@ -23,16 +23,18 @@ export const useNotification = () => React.useContext(NotificationContext);
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
 
-  const notify = (message: string, type: NotificationType = 'info') => {
+  const notify = React.useCallback((message: string, type: NotificationType = 'info') => {
     const id = Math.random().toString(36).substring(2, 9);
     setNotifications(prev => [...prev, { id, type, message }]);
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, 5000);
-  };
+  }, []);
+
+  const value = React.useMemo(() => ({ notify }), [notify]);
 
   return (
-    <NotificationContext.Provider value={{ notify }}>
+    <NotificationContext.Provider value={value}>
       {children}
       <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-4 pointer-events-none">
         <AnimatePresence>

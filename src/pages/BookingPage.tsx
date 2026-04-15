@@ -137,9 +137,10 @@ export const BookingPage = () => {
 
   const [showPaymentModal, setShowPaymentModal] = React.useState(false);
   const [currentBookingId, setCurrentBookingId] = React.useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = React.useState<'idle' | 'polling' | 'success' | 'failed'>('idle');
 
   const handleConfirmBooking = async () => {
-    if (!user || !bus || selectedSeats.length === 0) return;
+    if (!user || !bus || selectedSeats.length === 0 || loading || paymentStatus !== 'idle') return;
     if (!customerInfo.phone) {
       notify('Please enter your phone number for payment', 'warning');
       return;
@@ -247,10 +248,17 @@ export const BookingPage = () => {
         departureTime: bus.departureTime
       };
       
-      const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+      let docRef;
+      try {
+        docRef = await addDoc(collection(db, 'bookings'), bookingData);
+      } catch (err) {
+        handleFirestoreError(err, OperationType.CREATE, 'bookings');
+        return;
+      }
       setCurrentBookingId(docRef.id);
       
       // 3. Show the "Waiting for PIN" Modal
+      setPaymentStatus('polling');
       setShowPaymentModal(true);
       notify(payData.data.processor_response, 'info');
 
@@ -268,12 +276,19 @@ export const BookingPage = () => {
     const unsubscribe = onSnapshot(doc(db, 'bookings', currentBookingId), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-        if (data.paymentStatus === 'PAID') {
+        if (data.paymentStatus === 'PAID' && paymentStatus !== 'success') {
+          setPaymentStatus('success');
           notify('Payment confirmed! Your ticket is ready.', 'success');
-          setShowPaymentModal(false);
-          navigate(`/confirmation/${currentBookingId}`);
+          
+          setTimeout(() => {
+            setShowPaymentModal(false);
+            setPaymentStatus('idle');
+            navigate(`/confirmation/${currentBookingId}`);
+          }, 4000);
         }
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `bookings/${currentBookingId}`);
     });
 
     return unsubscribe;
@@ -303,23 +318,23 @@ export const BookingPage = () => {
 
   return (
     <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
-      <div className="flex items-center gap-4 mb-12">
-        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all", step === 'seats' ? 'bg-primary text-on-primary' : 'bg-secondary-container text-secondary')}>
-          {step === 'payment' ? <CheckCircle2 className="w-6 h-6" /> : '1'}
+      <div className="flex items-center gap-2 md:gap-4 mb-8 md:mb-12">
+        <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold transition-all text-sm md:text-base", step === 'seats' ? 'bg-primary text-on-primary' : 'bg-secondary-container text-secondary')}>
+          {step === 'payment' ? <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" /> : '1'}
         </div>
-        <div className="h-1 w-12 bg-surface-container-highest rounded-full">
+        <div className="h-1 w-8 md:w-12 bg-surface-container-highest rounded-full">
           <div className={cn("h-full bg-secondary transition-all duration-500", step === 'payment' ? 'w-full' : 'w-0')} />
         </div>
-        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all", step === 'payment' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-outline')}>
+        <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold transition-all text-sm md:text-base", step === 'payment' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-outline')}>
           2
         </div>
-        <h1 className="text-3xl font-black ml-4">{step === 'seats' ? 'Select Your Vantage Point' : 'Secure Your Journey'}</h1>
+        <h1 className="text-xl md:text-3xl font-black ml-2 md:ml-4">{step === 'seats' ? 'Select Your Vantage Point' : 'Secure Your Journey'}</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
         <div className="lg:col-span-7">
           {step === 'seats' ? (
-            <div className="bg-on-primary-fixed p-12 rounded-[40px] shadow-2xl">
+            <div className="bg-on-primary-fixed p-6 md:p-12 rounded-3xl md:rounded-[40px] shadow-2xl">
               <BusVisual 
                 selectedCount={selectedSeats.length} 
                 totalCount={bus.totalSeats} 
@@ -331,7 +346,7 @@ export const BookingPage = () => {
                     <div className="w-6 h-6 border-2 border-surface-variant/40 rounded-full"></div>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 gap-6">
+                <div className="grid grid-cols-4 gap-3 md:gap-6">
                   {bus.seatNumbers.map((seat) => {
                     const isBooked = bus.bookedSeats.includes(seat);
                     const isSelected = selectedSeats.includes(seat);
@@ -341,10 +356,10 @@ export const BookingPage = () => {
                         disabled={isBooked}
                         onClick={() => toggleSeat(seat)}
                         className={cn(
-                          "w-14 h-14 rounded-xl transition-all flex flex-col items-center justify-center font-bold text-xs relative",
+                          "w-10 h-10 md:w-14 md:h-14 rounded-lg md:rounded-xl transition-all flex flex-col items-center justify-center font-bold text-[10px] md:text-xs relative",
                           isBooked ? "bg-error/20 text-error/40 cursor-not-allowed border-none" :
-                          isSelected ? "bg-primary text-on-primary ring-4 ring-primary-fixed/30 scale-110" :
-                          "bg-secondary-fixed-dim text-on-secondary-fixed hover:scale-105 border-b-4 border-secondary/20"
+                          isSelected ? "bg-primary text-on-primary ring-2 md:ring-4 ring-primary-fixed/30 scale-110" :
+                          "bg-secondary-fixed-dim text-on-secondary-fixed hover:scale-105 border-b-2 md:border-b-4 border-secondary/20"
                         )}
                       >
                         {isSelected && <CheckCircle2 className="w-4 h-4 mb-0.5" />}
@@ -427,7 +442,7 @@ export const BookingPage = () => {
         </div>
 
         <div className="lg:col-span-5">
-          <div className="bg-surface-container-lowest p-10 rounded-[40px] border border-outline-variant/10 shadow-sm sticky top-32">
+          <div className="bg-surface-container-lowest p-6 md:p-10 rounded-3xl md:rounded-[40px] border border-outline-variant/10 shadow-sm sticky top-32">
             <h2 className="text-2xl font-bold mb-8">Trip Summary</h2>
             <div className="space-y-6 mb-10">
               <div className="flex justify-between items-center py-4 border-b border-outline-variant/10">
@@ -500,68 +515,112 @@ export const BookingPage = () => {
       </div>
 
       {/* Payment Waiting Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            className="absolute inset-0 bg-on-surface/60 backdrop-blur-xl" 
-          />
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="relative bg-surface p-12 rounded-[48px] shadow-2xl max-w-md w-full text-center border border-outline-variant/10"
-          >
-            <div className="w-24 h-24 bg-primary-fixed rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
-              <ShieldCheck className="w-12 h-12 text-primary" />
-            </div>
-            <h2 className="text-3xl font-black mb-4">Waiting for PIN...</h2>
-            <p className="text-on-surface-variant mb-8 leading-relaxed">
-              We've sent a payment request to <span className="font-bold text-on-surface">{customerInfo.phone}</span>. 
-              Please enter your PIN on your phone to confirm the transaction.
-            </p>
-            
-            <div className="bg-surface-container-low p-6 rounded-3xl mb-8 border border-outline-variant/10">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-bold text-outline uppercase">Amount</span>
-                <span className="font-black text-primary">{(selectedSeats.length * bus.price).toLocaleString()} UGX</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-outline uppercase">Network</span>
-                <span className="font-bold">{paymentMethod}</span>
-              </div>
-            </div>
+      <AnimatePresence>
+        {showPaymentModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-on-surface/60 backdrop-blur-xl" 
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative bg-surface p-10 rounded-[48px] shadow-2xl max-w-md w-full text-center border border-outline-variant/10"
+            >
+              <AnimatePresence mode="wait">
+                {paymentStatus === 'polling' ? (
+                  <motion.div 
+                    key="polling"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    <div className="relative w-24 h-24 mx-auto">
+                      <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 border-4 border-primary/20 border-t-primary rounded-full"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Smartphone className="w-10 h-10 text-primary animate-pulse" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <h2 className="text-3xl font-black tracking-tight">Check Your Phone</h2>
+                      <p className="text-on-surface-variant font-medium leading-relaxed">
+                        We've sent a secure PIN prompt to <span className="text-primary font-bold">{customerInfo.phone}</span>.
+                        Please enter your Mobile Money PIN to authorize the <span className="font-bold text-on-surface">{(selectedSeats.length * bus.price).toLocaleString()} UGX</span> payment.
+                      </p>
+                    </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 justify-center text-xs font-bold text-outline animate-bounce">
-                <Clock className="w-4 h-4" /> Securely waiting for confirmation...
-              </div>
-              
-              <a 
-                href="https://wa.me/256703261600" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-4 bg-[#25D366] text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
-              >
-                <MessageSquare className="w-5 h-5" /> WhatsApp Support
-              </a>
+                    <div className="bg-surface-container-low p-6 rounded-3xl border border-outline-variant/10 flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-bold text-outline uppercase tracking-widest">Status</p>
+                        <p className="text-sm font-bold animate-pulse">Waiting for PIN entry...</p>
+                      </div>
+                    </div>
 
-              {/* Simulation Helper */}
-              <button 
-                onClick={simulatePaymentSuccess}
-                disabled={loading}
-                className="w-full py-4 rounded-2xl bg-secondary-container text-secondary font-bold hover:bg-secondary hover:text-on-secondary transition-all flex items-center justify-center gap-2"
-              >
-                {loading ? 'Processing...' : 'Simulate PIN Entry (Success)'}
-              </button>
-              
-              <p className="text-[10px] text-outline italic">
-                Note: Real PIN prompts require valid Flutterwave API keys configured in the environment.
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      )}
+                    <div className="space-y-4">
+                      <a 
+                        href="https://wa.me/256703261600" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-4 bg-[#25D366] text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+                      >
+                        <MessageSquare className="w-5 h-5" /> WhatsApp Support
+                      </a>
+
+                      <button 
+                        onClick={simulatePaymentSuccess}
+                        disabled={loading}
+                        className="w-full py-4 rounded-2xl bg-secondary-container text-secondary font-bold hover:bg-secondary hover:text-on-secondary transition-all flex items-center justify-center gap-2"
+                      >
+                        {loading ? 'Processing...' : 'Simulate PIN Entry (Success)'}
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="space-y-8"
+                  >
+                    <div className="w-24 h-24 bg-primary rounded-full mx-auto flex items-center justify-center shadow-2xl shadow-primary/40">
+                      <CheckCircle2 className="w-12 h-12 text-on-primary" />
+                    </div>
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-black tracking-tight">Booking Confirmed!</h2>
+                      <p className="text-on-surface-variant font-medium">
+                        Your seats have been successfully reserved.
+                      </p>
+                    </div>
+                    <div className="bg-surface-container-low p-6 rounded-3xl border border-outline-variant/10">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-bold text-outline">Booking ID</span>
+                        <span className="text-sm font-mono font-bold">{currentBookingId?.substring(0, 8).toUpperCase()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-outline">Amount Paid</span>
+                        <span className="text-sm font-bold text-primary">{(selectedSeats.length * bus.price).toLocaleString()} UGX</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-outline font-medium">Redirecting to your ticket...</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

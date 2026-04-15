@@ -82,7 +82,7 @@
       "properties": {
         "userId": { "type": "string" },
         "amount": { "type": "number" },
-        "type": { "type": "string", "enum": ["topup", "payment", "refund", "airtime", "data"] },
+        "type": { "type": "string", "enum": ["topup", "payment", "refund", "airtime", "data", "utilities"] },
         "description": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },

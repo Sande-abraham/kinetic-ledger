@@ -64,3 +64,24 @@
     @apply font-headline;
   }
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .pt-24, .pt-32 {
+    padding-top: 0 !important;
+  }
+  .shadow-2xl {
+    box-shadow: none !important;
+  }
+  .rounded-3xl, .rounded-\[40px\] {
+    border-radius: 0 !important;
+  }
+  .border {
+    border: 1px solid #eee !important;
+  }
+}

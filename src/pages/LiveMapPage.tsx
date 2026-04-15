@@ -17,12 +17,12 @@ L.Icon.Default.mergeOptions({
 });
 
 const busIcon = new L.DivIcon({
-  html: `<div class="bg-primary p-2 rounded-full shadow-lg border-2 border-white animate-pulse">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2h10c0-1.1.9-2 2-2z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+  html: `<div class="bg-primary p-1.5 md:p-2 rounded-full shadow-lg border-2 border-white animate-pulse">
+          <svg class="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2h10c0-1.1.9-2 2-2z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
          </div>`,
   className: 'custom-bus-icon',
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
 });
 
 const stationIcon = new L.DivIcon({
@@ -50,6 +50,16 @@ const STATIONS = [
   { name: 'Karuma Bridge', coords: [2.2333, 32.3833], type: 'Checkpoint' },
   { name: 'Lira City Terminal', coords: [2.2472, 32.9000], type: 'Main' },
 ];
+
+const InvalidateSize = () => {
+  const map = useMap();
+  React.useEffect(() => {
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+  }, [map]);
+  return null;
+};
 
 export const LiveMapPage = () => {
   const [busPos, setBusPos] = React.useState<[number, number]>(ROUTE_COORDS[0]);
@@ -90,11 +100,11 @@ export const LiveMapPage = () => {
   }, [progress]);
 
   return (
-    <div className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
-      <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-200px)] min-h-[600px]">
+    <div className="pt-24 md:pt-32 pb-24 px-4 md:px-6 max-w-7xl mx-auto">
+      <div className="flex flex-col-reverse lg:flex-row gap-6 md:gap-8 lg:h-[calc(100vh-250px)]">
         {/* Sidebar Info */}
         <div className="lg:w-80 space-y-6 overflow-y-auto pr-2">
-          <div className="bg-surface-container-low p-8 rounded-[40px] border border-outline-variant/10">
+          <div className="bg-surface-container-low p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10">
             <div className="flex items-center gap-3 mb-6">
               <div className="bg-primary p-2.5 rounded-xl">
                 <Navigation className="w-5 h-5 text-on-primary" />
@@ -129,7 +139,7 @@ export const LiveMapPage = () => {
             </div>
           </div>
 
-          <div className="bg-surface-container-low p-8 rounded-[40px] border border-outline-variant/10">
+          <div className="bg-surface-container-low p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-outline-variant/10">
             <h3 className="text-sm font-bold text-outline uppercase tracking-widest mb-6">Route Stations</h3>
             <div className="space-y-6 relative">
               <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-outline-variant/30" />
@@ -157,12 +167,12 @@ export const LiveMapPage = () => {
         </div>
 
         {/* Map Container */}
-        <div className="flex-1 bg-surface-container-low rounded-[48px] overflow-hidden border border-outline-variant/10 shadow-2xl relative">
+        <div className="flex-1 bg-surface-container-low rounded-[32px] md:rounded-[48px] overflow-hidden border border-outline-variant/10 shadow-2xl relative min-h-[400px] lg:min-h-0">
           <MapContainer 
             center={[1.2, 32.6]} 
             zoom={8} 
             scrollWheelZoom={true}
-            className="w-full h-full z-0"
+            className="w-full h-[400px] lg:h-full z-0"
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -200,6 +210,7 @@ export const LiveMapPage = () => {
                 </div>
               </Popup>
             </Marker>
+            <InvalidateSize />
           </MapContainer>
 
           {/* Map Overlays */}

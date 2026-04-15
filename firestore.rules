@@ -86,8 +86,9 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "gamamediaug@gmail.com" && request.auth.token.email_verified == true));
+        (request.auth.token.email == "gamamediaug@gmail.com" ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
     }
 
     function isValidEmail(email) {
@@ -95,7 +96,7 @@ service cloud.firestore {
     }
 
     function isPositive(val) {
-      return val is number && val > 0;
+      return val is number && val >= 0;
     }
 
     function isValidList(val, maxLen) {
@@ -107,14 +108,12 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'role', 'walletBalance', 'walletPin']) &&
-             data.uid == request.auth.uid &&
-             (!('email' in data) || isValidEmail(data.email)) &&
-             (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() < 20)) &&
-             data.role in ['admin', 'client'] &&
-             data.walletBalance is number &&
-             data.walletPin is string && data.walletPin.size() == 4 &&
-             data.uid is string && data.uid.size() < 128;
+      return (!('role' in data) || data.role in ['admin', 'client', 'driver', 'conductor']) &&
+             (!('walletBalance' in data) || data.walletBalance is number) &&
+             (!('walletPin' in data) || (data.walletPin is string && data.walletPin.size() == 4)) &&
+             (!('email' in data) || (data.email == null || isValidEmail(data.email))) &&
+             (!('phoneNumber' in data) || (data.phoneNumber == null || data.phoneNumber is string)) &&
+             (!('uid' in data) || (data.uid is string && data.uid.size() < 128));
     }
 
     function isValidBus(data) {
@@ -149,7 +148,7 @@ service cloud.firestore {
       return data.keys().hasAll(['userId', 'amount', 'type', 'description', 'createdAt']) &&
              data.userId == request.auth.uid &&
              data.amount is number &&
-             data.type in ['topup', 'payment', 'refund', 'airtime', 'data'] &&
+             data.type in ['topup', 'payment', 'refund', 'airtime', 'data', 'utilities'] &&
              data.description is string && data.description.size() < 200 &&
              data.createdAt is timestamp;
     }
@@ -160,8 +159,13 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'client' || isAdmin());
-      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.uid == userId && request.resource.data.role == 'client';
+      allow update: if (isAdmin() && isValidUser(request.resource.data)) || 
+                    (isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role) || 
+                    (isAuthenticated() && 
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletBalance']) &&
+                     request.resource.data.walletBalance > resource.data.walletBalance);
+      allow delete: if isAdmin();
     }
 
     match /drivers/{driverId} {
@@ -199,9 +203,19 @@ service cloud.firestore {
     }
 
     match /staff_notifications/{notificationId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.staffId || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phoneNumber == resource.data.staffContact) ||
+        isAdmin()
+      );
       allow create: if isAdmin();
-      allow update: if isAuthenticated() && (request.auth.uid == resource.data.staffId || isAdmin());
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.staffId || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phoneNumber == resource.data.staffContact) ||
+        isAdmin()
+      );
     }
 
     match /transactions/{transactionId} {

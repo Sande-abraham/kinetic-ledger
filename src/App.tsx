@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { NotificationProvider } from './lib/NotificationContext';
-import AppErrorBoundary from './components/AppErrorBoundary';
+import AppGuard from './AppGuard';
 import { HomePage } from './pages/HomePage';
 import { SearchPage } from './pages/SearchPage';
 import { BookingPage } from './pages/BookingPage';
@@ -195,7 +195,7 @@ const App = () => {
     <AuthProvider>
       <NotificationProvider>
         <Router>
-          <AppErrorBoundary>
+          <AppGuard>
             <div className="min-h-screen bg-surface selection:bg-primary/20 selection:text-primary">
               <Navbar />
               <main>
@@ -217,7 +217,7 @@ const App = () => {
               </main>
               <Footer />
             </div>
-          </AppErrorBoundary>
+          </AppGuard>
         </Router>
       </NotificationProvider>
     </AuthProvider>

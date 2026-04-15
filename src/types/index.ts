@@ -6,7 +6,7 @@ export interface UserProfile {
   displayName?: string;
   photoURL?: string;
   phoneNumber?: string;
-  role: 'admin' | 'client';
+  role: 'admin' | 'client' | 'driver' | 'conductor';
   walletBalance: number;
   walletPin?: string;
   createdAt: Timestamp;
@@ -62,6 +62,7 @@ export interface Complaint {
 export interface StaffNotification {
   id: string;
   staffId: string;
+  staffContact?: string;
   message: string;
   type: 'assignment' | 'alert';
   read: boolean;
@@ -90,7 +91,7 @@ export interface Transaction {
   id: string;
   userId: string;
   amount: number;
-  type: 'topup' | 'payment' | 'refund' | 'airtime' | 'data';
+  type: 'topup' | 'payment' | 'refund' | 'airtime' | 'data' | 'utilities';
   description: string;
   createdAt: Timestamp;
 }

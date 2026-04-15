@@ -6,6 +6,7 @@ import { Bus as BusIcon } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 // Fix for default marker icons in Leaflet
+import 'leaflet/dist/leaflet.css';
 const DefaultIcon = L.icon({
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
@@ -44,6 +45,10 @@ const RecenterMap = ({ coords }: { coords: [number, number] }) => {
   const map = useMap();
   React.useEffect(() => {
     map.setView(coords);
+    // Force a resize check to ensure map renders correctly in dynamic layouts
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
   }, [coords, map]);
   return null;
 };

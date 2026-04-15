@@ -79,7 +79,7 @@ export const HomePage = () => {
             }}
             className="absolute top-1/2 -translate-y-1/2 whitespace-nowrap"
           >
-            <BusIcon className="w-[800px] h-[800px] rotate-12 text-primary/20" />
+            <BusIcon className="w-[300px] h-[300px] md:w-[800px] md:h-[800px] rotate-12 text-primary/20" />
           </motion.div>
           
           {/* Decorative Abstract Shapes */}
@@ -111,14 +111,14 @@ export const HomePage = () => {
               <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-primary">Next Gen Travel Experience</span>
             </div>
             
-            <h1 className="text-4xl sm:text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] text-on-surface relative">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85] text-on-surface relative">
               The <span className="text-primary relative">
                 Future
                 <motion.span 
                   initial={{ width: 0 }}
                   whileInView={{ width: "100%" }}
                   transition={{ delay: 0.5, duration: 1 }}
-                  className="absolute bottom-1 md:bottom-2 left-0 h-1.5 md:h-4 bg-primary/20 -z-10"
+                  className="absolute bottom-1 md:bottom-2 left-0 h-1 md:h-4 bg-primary/20 -z-10"
                 />
               </span> of <span className="italic font-serif text-secondary">Travel</span> is Here.
             </h1>
@@ -167,46 +167,50 @@ export const HomePage = () => {
             className="relative"
           >
             <div className="absolute inset-0 bg-primary/20 blur-[120px] rounded-full -z-10 animate-pulse" />
-            <div className="bg-white/70 backdrop-blur-3xl p-12 rounded-[72px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border border-white/40 relative z-10" id="booking-widget">
-              <div className="flex items-center gap-4 mb-10">
-                <div className="bg-primary p-3 rounded-2xl">
-                  <BusIcon className="text-on-primary w-6 h-6" />
+            <div className="bg-white/70 backdrop-blur-3xl p-6 md:p-12 rounded-[32px] md:rounded-[72px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border border-white/40 relative z-10" id="booking-widget">
+              <div className="flex items-center gap-4 mb-6 md:mb-10">
+                <div className="bg-primary p-2 md:p-3 rounded-xl md:rounded-2xl">
+                  <BusIcon className="text-on-primary w-5 h-5 md:w-6 md:h-6" />
                 </div>
-                <h2 className="text-4xl font-black tracking-tight">Search Bus</h2>
+                <h2 className="text-2xl md:text-4xl font-black tracking-tight">Search Bus</h2>
               </div>
 
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
+              <div className="space-y-6 md:space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                  <div className="space-y-2 md:space-y-3">
                     <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] ml-2">Departure</label>
                     <div className="relative group">
                       <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-primary w-5 h-5 group-focus-within:scale-110 transition-transform" />
                       <select 
                         value={search.from}
                         onChange={e => setSearch({...search, from: e.target.value})}
-                        className="w-full bg-surface-container-low/50 pl-14 pr-6 py-5 rounded-3xl border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all font-bold text-lg appearance-none"
+                        className="w-full bg-surface-container-low/50 pl-14 pr-6 py-4 md:py-5 rounded-2xl md:rounded-3xl border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all font-bold text-base md:text-lg appearance-none"
                       >
                         <option>Kampala</option>
                         <option>Lira</option>
+                        <option>Mbarara</option>
+                        <option>Gulu</option>
                       </select>
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2 md:space-y-3">
                     <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] ml-2">Destination</label>
                     <div className="relative group">
                       <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-secondary w-5 h-5 group-focus-within:scale-110 transition-transform" />
                       <select 
                         value={search.to}
                         onChange={e => setSearch({...search, to: e.target.value})}
-                        className="w-full bg-surface-container-low/50 pl-14 pr-6 py-5 rounded-3xl border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all font-bold text-lg appearance-none"
+                        className="w-full bg-surface-container-low/50 pl-14 pr-6 py-4 md:py-5 rounded-2xl md:rounded-3xl border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all font-bold text-base md:text-lg appearance-none"
                       >
                         <option>Lira</option>
                         <option>Kampala</option>
+                        <option>Mbarara</option>
+                        <option>Gulu</option>
                       </select>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <label className="text-[10px] font-black text-outline uppercase tracking-[0.2em] ml-2">Travel Date</label>
                   <div className="relative group">
                     <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-primary w-5 h-5 group-focus-within:scale-110 transition-transform" />
@@ -214,7 +218,7 @@ export const HomePage = () => {
                       type="date" 
                       value={search.date}
                       onChange={e => setSearch({...search, date: e.target.value})}
-                      className="w-full bg-surface-container-low/50 pl-14 pr-6 py-5 rounded-3xl border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all font-bold text-lg"
+                      className="w-full bg-surface-container-low/50 pl-14 pr-6 py-4 md:py-5 rounded-2xl md:rounded-3xl border-2 border-transparent focus:border-primary/20 focus:bg-white transition-all font-bold text-base md:text-lg"
                     />
                   </div>
                 </div>
@@ -222,7 +226,7 @@ export const HomePage = () => {
                   whileHover={{ y: -4 }}
                   whileTap={{ y: 0 }}
                   onClick={handleSearch}
-                  className="w-full bg-on-surface text-surface py-6 rounded-3xl font-black text-xl hover:bg-primary transition-all mt-6 flex items-center justify-center gap-4 shadow-2xl shadow-on-surface/20"
+                  className="w-full bg-on-surface text-surface py-4 md:py-6 rounded-2xl md:rounded-3xl font-black text-lg md:text-xl hover:bg-primary transition-all mt-4 md:mt-6 flex items-center justify-center gap-4 shadow-2xl shadow-on-surface/20"
                 >
                   Find Available Buses <ArrowRight className="w-6 h-6" />
                 </motion.button>
@@ -233,40 +237,40 @@ export const HomePage = () => {
       </section>
 
       {/* Live Map Preview Section */}
-      <section className="py-32 px-6 relative">
+      <section className="py-16 md:py-32 px-4 md:px-6 relative">
         <div className="max-w-7xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-on-surface text-surface rounded-[64px] overflow-hidden shadow-[0_48px_96px_-12px_rgba(0,0,0,0.3)] flex flex-col lg:flex-row"
+            className="bg-on-surface text-surface rounded-[40px] md:rounded-[64px] overflow-hidden shadow-[0_48px_96px_-12px_rgba(0,0,0,0.3)] flex flex-col lg:flex-row"
           >
-            <div className="p-16 lg:w-1/2 space-y-8">
+            <div className="p-8 md:p-16 lg:w-1/2 space-y-6 md:space-y-8">
               <div className="inline-flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full">
                 <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                 <span className="text-[10px] font-black uppercase tracking-widest">Live Fleet Tracking</span>
               </div>
-              <h2 className="text-5xl md:text-6xl font-black tracking-tight leading-[0.9]">
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-[0.9]">
                 Track Your <span className="text-primary">Journey</span> in Real-Time.
               </h2>
-              <p className="text-lg text-surface/60 leading-relaxed font-medium">
+              <p className="text-base md:text-lg text-surface/60 leading-relaxed font-medium">
                 Never wonder where your bus is. Our live GPS map shows you exactly where the fleet is, current speeds, and accurate arrival times.
               </p>
-              <div className="grid grid-cols-2 gap-8 py-4">
+              <div className="grid grid-cols-2 gap-6 md:gap-8 py-2 md:py-4">
                 <div>
-                  <p className="text-4xl font-black text-primary">100%</p>
-                  <p className="text-xs font-bold text-surface/40 uppercase tracking-widest mt-1">GPS Coverage</p>
+                  <p className="text-3xl md:text-4xl font-black text-primary">100%</p>
+                  <p className="text-[10px] font-bold text-surface/40 uppercase tracking-widest mt-1">GPS Coverage</p>
                 </div>
                 <div>
-                  <p className="text-4xl font-black text-secondary">Real-time</p>
-                  <p className="text-xs font-bold text-surface/40 uppercase tracking-widest mt-1">Updates</p>
+                  <p className="text-3xl md:text-4xl font-black text-secondary">Real-time</p>
+                  <p className="text-[10px] font-bold text-surface/40 uppercase tracking-widest mt-1">Updates</p>
                 </div>
               </div>
-              <Link to="/live-map" className="inline-flex items-center gap-4 bg-primary text-on-primary px-10 py-5 rounded-2xl font-black hover:bg-primary-container transition-all group">
+              <Link to="/live-map" className="inline-flex items-center justify-center gap-4 bg-primary text-on-primary px-8 md:px-10 py-4 md:py-5 rounded-2xl font-black hover:bg-primary-container transition-all group w-full sm:w-auto">
                 Open Live Map <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
               </Link>
             </div>
-            <div className="lg:w-1/2 h-[400px] lg:h-auto relative group cursor-pointer overflow-hidden" onClick={() => navigate('/live-map')}>
+            <div className="lg:w-1/2 h-[300px] md:h-[400px] lg:h-auto relative group cursor-pointer overflow-hidden" onClick={() => navigate('/live-map')}>
               <img 
                 src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1200" 
                 className="w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-1000"
@@ -294,13 +298,13 @@ export const HomePage = () => {
       </section>
 
       {/* Benefits */}
-      <section className="py-32 px-6">
+      <section className="py-16 md:py-32 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 space-y-4">
-            <h2 className="text-5xl md:text-7xl font-black tracking-tighter">Why Choose Kinetic?</h2>
-            <p className="text-xl text-on-surface-variant font-medium">Setting the standard for executive travel in Uganda.</p>
+          <div className="text-center mb-12 md:mb-20 space-y-4">
+            <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Why Choose Kinetic?</h2>
+            <p className="text-lg md:text-xl text-on-surface-variant font-medium">Setting the standard for executive travel in Uganda.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
             {[
               { icon: Zap, title: "Instant Booking", desc: "Secure your seat in under 60 seconds with real-time availability.", color: "bg-primary-fixed text-primary" },
               { icon: ShieldCheck, title: "Safe Payments", desc: "Integrated with MTN & Airtel Money for secure, instant transactions.", color: "bg-secondary-container text-secondary" },
@@ -312,13 +316,13 @@ export const HomePage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="group p-12 rounded-[56px] bg-white hover:bg-on-surface hover:text-surface transition-all duration-700 border border-outline-variant/10 shadow-xl shadow-black/5"
+                className="group p-6 md:p-12 rounded-[32px] md:rounded-[56px] bg-white hover:bg-on-surface hover:text-surface transition-all duration-700 border border-outline-variant/10 shadow-xl shadow-black/5"
               >
-                <div className={cn("w-20 h-20 rounded-3xl flex items-center justify-center mb-10 transition-transform group-hover:scale-110 group-hover:rotate-6", item.color)}>
-                  <item.icon className="w-10 h-10" />
+                <div className={cn("w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center mb-6 md:mb-10 transition-transform group-hover:scale-110 group-hover:rotate-6", item.color)}>
+                  <item.icon className="w-8 h-8 md:w-10 md:h-10" />
                 </div>
-                <h3 className="text-3xl font-black mb-6">{item.title}</h3>
-                <p className="text-on-surface-variant group-hover:text-surface/60 leading-relaxed font-medium">{item.desc}</p>
+                <h3 className="text-2xl md:text-3xl font-black mb-4 md:mb-6">{item.title}</h3>
+                <p className="text-sm md:text-base text-on-surface-variant group-hover:text-surface/60 leading-relaxed font-medium">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -326,52 +330,52 @@ export const HomePage = () => {
       </section>
 
       {/* Route Showcase */}
-      <section className="py-24 px-6">
+      <section className="py-16 md:py-24 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16 gap-6 md:gap-8">
             <div>
-              <h2 className="text-5xl font-black mb-4">Popular Routes</h2>
-              <p className="text-on-surface-variant text-lg">Daily executive trips across Northern Uganda.</p>
+              <h2 className="text-3xl md:text-5xl font-black mb-2 md:mb-4">Popular Routes</h2>
+              <p className="text-on-surface-variant text-base md:text-lg">Daily executive trips across Northern Uganda.</p>
             </div>
-            <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-2xl">
+            <div className="flex items-center gap-2 md:gap-4 bg-surface-container-low p-1.5 md:p-2 rounded-xl md:rounded-2xl w-full md:w-auto overflow-x-auto">
               <button 
                 onClick={() => setSearch({ ...search, from: 'Kampala', to: 'Lira' })}
-                className={cn("px-6 py-2 rounded-xl font-bold transition-all", search.from === 'Kampala' ? "bg-white shadow-sm" : "text-outline")}
+                className={cn("px-4 md:px-6 py-2 rounded-lg md:rounded-xl font-bold transition-all text-xs md:text-sm whitespace-nowrap", search.from === 'Kampala' ? "bg-white shadow-sm" : "text-outline")}
               >
                 Kampala → Lira
               </button>
               <button 
                 onClick={() => setSearch({ ...search, from: 'Lira', to: 'Kampala' })}
-                className={cn("px-6 py-2 rounded-xl font-bold transition-all", search.from === 'Lira' ? "bg-white shadow-sm" : "text-outline")}
+                className={cn("px-4 md:px-6 py-2 rounded-lg md:rounded-xl font-bold transition-all text-xs md:text-sm whitespace-nowrap", search.from === 'Lira' ? "bg-white shadow-sm" : "text-outline")}
               >
                 Lira → Kampala
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {[
               { time: "06:00 AM", operator: "Ledger Morning", price: "35,000", img: "https://picsum.photos/seed/coach-bus-1/800/600" },
               { time: "09:30 AM", operator: "Kinetic Express", price: "40,000", img: "https://picsum.photos/seed/coach-bus-2/800/600" },
               { time: "02:00 PM", operator: "Lira Premier", price: "35,000", img: "https://picsum.photos/seed/coach-bus-3/800/600" },
               { time: "09:00 PM", operator: "Night Owl", price: "45,000", img: "https://picsum.photos/seed/coach-bus-4/800/600" }
             ].map((route, i) => (
-              <div key={i} className="group bg-surface-container-lowest rounded-[40px] overflow-hidden border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all duration-500">
-                <div className="relative h-48 overflow-hidden">
+              <div key={i} className="group bg-surface-container-lowest rounded-[32px] md:rounded-[40px] overflow-hidden border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all duration-500">
+                <div className="relative h-40 md:h-48 overflow-hidden">
                   <img src={route.img} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1">
                     <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                     <span className="text-[10px] font-bold">4.9</span>
                   </div>
                 </div>
-                <div className="p-8">
+                <div className="p-6 md:p-8">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">{route.time}</p>
-                      <h4 className="text-xl font-bold">{route.operator}</h4>
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">{route.time}</p>
+                      <h4 className="text-lg md:text-xl font-bold">{route.operator}</h4>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-black">{route.price}</p>
+                      <p className="text-base md:text-lg font-black">{route.price}</p>
                       <p className="text-[10px] font-bold text-outline uppercase">UGX</p>
                     </div>
                   </div>

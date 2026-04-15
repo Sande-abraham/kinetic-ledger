@@ -78,20 +78,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (snap.exists()) {
             setProfile(snap.data());
           } else {
-            // Profile doesn't exist yet, create it if it's a Google user
-            // Anonymous users (phone login) handle their own profile creation to avoid race conditions
-            if (user.providerData.length > 0) {
-              const newProfile = {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-                role: 'client',
-                walletBalance: 0,
-                walletPin: '0000',
-                createdAt: serverTimestamp(),
-              };
+            // Profile doesn't exist yet, create it for any authenticated user
+            const newProfile = {
+              uid: user.uid,
+              email: user.email || null,
+              displayName: user.displayName || 'Traveler',
+              photoURL: user.photoURL || null,
+              phoneNumber: user.phoneNumber || null,
+              role: 'client',
+              walletBalance: 0,
+              walletPin: '0000',
+              createdAt: serverTimestamp(),
+            };
+            try {
               await setDoc(doc(db, 'users', user.uid), newProfile);
+            } catch (err) {
+              console.error('Error creating initial profile:', err);
             }
           }
           setLoading(false);
