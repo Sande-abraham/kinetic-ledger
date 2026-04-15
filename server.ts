@@ -4,6 +4,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import axios from "axios";
 import dotenv from "dotenv";
+import { db } from "./src/lib/firebase";
+import { doc, updateDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 
 dotenv.config();
 

@@ -482,7 +482,10 @@ export const BookingPage = () => {
             {step === 'seats' ? (
               <button
                 disabled={selectedSeats.length === 0}
-                onClick={() => setStep('payment')}
+                onClick={() => {
+                  setStep('payment');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className="w-full bg-on-surface text-surface py-5 rounded-2xl font-bold hover:bg-primary transition-all disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 Continue to Payment

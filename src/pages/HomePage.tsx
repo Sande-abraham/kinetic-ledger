@@ -29,7 +29,19 @@ export const HomePage = () => {
       notify('Please sign in to book your seat', 'info');
       navigate('/auth');
     } else {
-      document.getElementById('booking-widget')?.scrollIntoView({ behavior: 'smooth' });
+      const widget = document.getElementById('booking-widget');
+      if (widget) {
+        const offset = 100; // Account for fixed navbar
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = widget.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
     }
   };
 
