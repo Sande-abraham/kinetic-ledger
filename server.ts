@@ -33,32 +33,44 @@ app.get("/api/health", (req, res) => {
 
 // Initiate Payment
 app.post("/api/payments/initiate", async (req, res) => {
-  const { amount, phoneNumber } = req.body;
+  const { amount, phoneNumber, email, name } = req.body;
 
   if (!phoneNumber) {
-    return res
-      .status(400)
-      .json({ status: "error", message: "Phone number is required" });
+    return res.status(400).json({ error: "Phone number is required" });
   }
 
   try {
-    console.log(`Initiating payment of ${amount} for ${phoneNumber}`);
+    console.log(`Sending STK push to ${phoneNumber} for ${amount} UGX`);
 
-    res.json({
-      status: "success",
-      message: "Charge initiated",
-      data: {
-        status: "pending",
-        processor_response:
-          "Transaction initiated. Please check your phone.",
-        id: Math.floor(Math.random() * 1000000),
+    const response = await axios.post(
+      "https://api.flutterwave.com/v3/charges?type=mobile_money_uganda",
+      {
+        tx_ref: "tx-" + Date.now(),
+        amount,
+        currency: "UGX",
+        email,
+        fullname: name,
+        phone_number: phoneNumber,
+        network:
+          phoneNumber.startsWith("077") || phoneNumber.startsWith("078")
+            ? "MTN"
+            : "AIRTEL",
       },
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    res.json(response.data);
   } catch (error: any) {
-    console.error("Payment initiation failed:", error.message);
-    res
-      .status(500)
-      .json({ status: "error", message: "Failed to initiate payment" });
+    console.error("Flutterwave error:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "Payment failed",
+      details: error.response?.data || error.message,
+    });
   }
 });
 
