@@ -40,7 +40,8 @@ app.post("/api/payments/initiate", async (req, res) => {
   }
 
   try {
-    console.log(`Sending STK push to ${phoneNumber} for ${amount} UGX`);
+    // 👇 ADD IT HERE
+    console.log("FLW KEY:", process.env.FLW_SECRET_KEY);
 
     const response = await axios.post(
       "https://api.flutterwave.com/v3/charges?type=mobile_money_uganda",
@@ -71,50 +72,6 @@ app.post("/api/payments/initiate", async (req, res) => {
       error: "Payment failed",
       details: error.response?.data || error.message,
     });
-  }
-});
-
-// Wallet processing
-app.post("/api/wallet/process", async (req, res) => {
-  const { userId, action, amount, phone } = req.body;
-
-  if (!userId) {
-    return res
-      .status(400)
-      .json({ status: "error", message: "User ID is required" });
-  }
-
-  try {
-    if (action === "topup") {
-      if (!phone) {
-        return res
-          .status(400)
-          .json({ status: "error", message: "Phone required" });
-      }
-
-      const txRef = `KINETIC-MM-${Math.floor(Math.random() * 1000000)}`;
-
-      return res.json({
-        status: "pending",
-        txRef,
-        message: "Check your phone for PIN prompt",
-      });
-    }
-
-    await new Promise((r) => setTimeout(r, 1000));
-
-    res.json({
-      status: "success",
-      message: "Processed successfully",
-      data: {
-        transactionId: `TXN-${Math.floor(Math.random() * 10000000)}`,
-      },
-    });
-  } catch (error: any) {
-    console.error("Wallet error:", error.message);
-    res
-      .status(500)
-      .json({ status: "error", message: "Transaction failed" });
   }
 });
 
